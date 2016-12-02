@@ -1,10 +1,13 @@
+package mpmens
+
+import mpmens.model.Component
 import org.chocosolver.solver.Model
 import org.chocosolver.solver.constraints.nary.cnf.{ILogical, LogOp}
 import org.chocosolver.solver.variables.{BoolVar, IntVar}
 
 import scala.collection.mutable
 
-class EnsemblesSystem {
+class System {
   private val INT_MAX_VALUE = IntVar.MAX_INT_BOUND
   private val INT_MIN_VALUE = IntVar.MIN_INT_BOUND
 
@@ -74,7 +77,7 @@ class EnsemblesSystem {
 
   class Ensemble[AnchorType <: Component](val anchor: AnchorType) {
     private val roles = mutable.Map.empty[String, Role[_]]
-    private[EnsemblesSystem] var costVar: IntVar = null
+    private[System] var costVar: IntVar = null
 
     def addRole[ComponentType <: Component](name: String, items: List[ComponentType]) = {
       val role = new Role[ComponentType](name, items)
