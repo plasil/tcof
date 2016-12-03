@@ -3,7 +3,7 @@ package mpmens
 import org.chocosolver.solver.Model
 import org.chocosolver.solver.variables.IntVar
 
-trait WithSolverModel {
+trait SolverMixin {
   /** Upper bound for integer variables of the solver */
   private[mpmens] val IntMaxValue = IntVar.MAX_INT_BOUND
   /** Lower bound for integer variables of the solver */
@@ -11,5 +11,7 @@ trait WithSolverModel {
 
   private[mpmens] def newIntVar = solverModel.intVar(IntMinValue, IntMaxValue)
 
-  private[mpmens] def solverModel: Model
+  /** Model used by the solver. */
+  private[mpmens] val solverModel = new Model()
+
 }

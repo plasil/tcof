@@ -1,40 +1,20 @@
 package mpmens
 
-import mpmens.model.Component
 import org.chocosolver.solver.Model
-import org.chocosolver.solver.constraints.nary.cnf.{ILogical, LogOp}
-import org.chocosolver.solver.variables.{BoolVar, IntVar, SetVar}
 
 import scala.collection.mutable
 
-class System extends WithSolverModel with LogicalMixin with IntegerMixin with MembersMixin with ImplicitsMixin with RolesMixin with EnsemblesMixin with WithUtility {
-  system =>
 
+class System extends SolverMixin with LogicalMixin with IntegerMixin with MembersMixin with ImplicitsMixin with RolesMixin with EnsemblesMixin with WithUtility {
+  systemThis =>
 
-
-  trait SystemDelegates extends WithSolverModel with LogicalHelper with IntegerHelper {
-    def solverModel = system.solverModel
-
-    def sumBasedOnMembership(membersVar: SetVar, values: Array[Integer]): IntegerIntVar = sumBasedOnMembership(membersVar, values)
+  trait SystemDelegates extends WithSystemDelegates {
+    def system = systemThis
+    def solverModel = systemThis.solverModel
   }
-
-  /** Model used by the solver. */
-  private[mpmens] val solverModel = new Model()
-
-  /** Solver variable representing the total utility of the system */
-  private var totalUtilityVar: IntVar = null
 
   /** Internal method used in pretty-printing solving results */
   private[mpmens] def indent(str: String, level: Int) = str.lines.map("  " * level + _).mkString("\n")
-
-  /** A set of all potential ensembles */
-  private val ensembleGroups = mutable.ListBuffer.empty[EnsembleGroup[_]]
-
-  def ensembles[EnsembleType <: Ensemble[_]](generator: => Array[EnsembleType]): EnsembleGroup[EnsembleType] = {
-    val group = new EnsembleGroup(generator _)
-    ensembleGroups += group
-    group
-  }
 
   def restart(): Unit = {
     utility match {
@@ -42,8 +22,9 @@ class System extends WithSolverModel with LogicalMixin with IntegerMixin with Me
     }
 
     val clauses = ensembleGroups.map(_.setupEnsemblesAndGetMembershipClause())
+    val systemClause = LogicalUtils.and(clauses)
 
-    clauses.
+    LogicalUtils.post(systemClause)
   }
 
   def solve(): Boolean = {
@@ -52,6 +33,6 @@ class System extends WithSolverModel with LogicalMixin with IntegerMixin with Me
 
   override def toString(): String =
     s"""System (total utility: ${solutionUtility}):
-       |${ensembles.mkString("\n")}
+       |${ensembleGroups.mkString("\n")}
      """.stripMargin
 }

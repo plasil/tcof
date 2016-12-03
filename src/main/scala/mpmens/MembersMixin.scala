@@ -1,13 +1,13 @@
 package mpmens
 
-import mpmens.model.Component
 import scala.collection.mutable
-import scala.reflect.runtime.universe._
+import scala.reflect.ClassTag
 
-trait MembersMixin extends WithSolverModel {
+trait MembersMixin {
+  this: System =>
 
   class MembersFromUniverse[MemberType](components: Array[MemberType]) extends Members(components) {
-    override def withRole[RoleType <: MemberType : TypeTag]: Members[RoleType] = {
+    override def withRole[RoleType <: MemberType : ClassTag]: Members[RoleType] = {
       val comps = mutable.ListBuffer.empty[RoleType]
 
       for (idx <- 0 until components.size) {
@@ -27,7 +27,7 @@ trait MembersMixin extends WithSolverModel {
       val parentIndices: Array[Int]) extends Members(components) {
 
     /** Creates members from existing parent without any filtering. */
-    def this(parent: WithMembers[MemberType]) = this(parent.allMembers.values, parent, 0 until parent.allMembers.size)
+    def this(parent: WithMembers[MemberType]) = this(parent.allMembers.values, parent, 0 until parent.allMembers.size toArray)
 
     override def mapChildToParent(childRole: WithMembers[_]): Unit = {
       for (idx <- 0 until size) {
@@ -35,7 +35,7 @@ trait MembersMixin extends WithSolverModel {
       }
     }
 
-    override def withRole[RoleType <: MemberType : TypeTag]: Members[RoleType] = {
+    override def withRole[RoleType <: MemberType : ClassTag]: Members[RoleType] = {
       val comps = mutable.ListBuffer.empty[RoleType]
       val idxs = mutable.ListBuffer.empty[Int]
 

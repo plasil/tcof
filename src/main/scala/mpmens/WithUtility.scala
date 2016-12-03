@@ -1,7 +1,5 @@
 package mpmens
 
-import org.chocosolver.solver.variables.IntVar
-
 trait WithUtility {
   private var _utility: Integer = null
 

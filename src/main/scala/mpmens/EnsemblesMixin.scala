@@ -35,34 +35,27 @@ trait EnsemblesMixin {
   class EnsembleGroup[EnsembleType <: Ensemble[_]](private val generator: () => Array[EnsembleType])
       extends SystemDelegates with WithMembers[EnsembleType] {
 
-    private[mpmens] var allMembersVar: SetVar = null
-
-    private[mpmens] var ensembles: Array[EnsembleType] = null
-
-    override def allMembers = ensembles
+    private[mpmens] var allMembers: Members[EnsembleType] = null
 
     private[mpmens] def setupEnsemblesAndGetMembershipClause() = {
-      ensembles = generator()
-      allMembersVar = solverModel.setVar(Array.empty[Int], 0 until ensembles.size toArray)
+      allMembers = generator()
+      setupWithMembers()
 
-      val clauses = mutable.ListBuffer.empty[ILogical]
-
-      for (idx <- 0 until ensembles.size) {
-        val ensemble = ensembles(idx)
-
-        ensemble.membershipClause match {
-          case LogicalBoolean(value) => if (!value) clauses += solverModel.notMember(idx, allMembersVar).reify
-          case LogicalBoolVar(value) => clauses += LogOp.implies(solverModel.member(idx, allMembersVar).reify, value)
-          case LogicalLogOp(value) => clauses += LogOp.implies(solverModel.member(idx, allMembersVar).reify, value)
-        }
-      }
-
-      if (clauses.size > 0)
-        LogicalLogOp(LogOp.and(clauses : _*))
-      else
-        LogicalBoolean(true)
+      LogicalUtils.conditionMembership(allMembers.map(_.membershipClause), allMembersVar, LogOp.and(_ : _*), true)
     }
 
+    override def toString(): String =
+      s"""Ensemble group:
+         |${indent(selectedMembers.mkString("\n"), 1)}
+         |""".stripMargin
   }
 
+  /** A set of all potential ensembles */
+  protected val ensembleGroups = mutable.ListBuffer.empty[EnsembleGroup[_]]
+
+  def ensembles[EnsembleType <: Ensemble[_]](generator: => Array[EnsembleType]): EnsembleGroup[EnsembleType] = {
+    val group = new EnsembleGroup(generator _)
+    ensembleGroups += group
+    group
+  }
 }

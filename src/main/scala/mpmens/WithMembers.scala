@@ -1,15 +1,16 @@
 package mpmens
 
-import org.chocosolver.solver.constraints.nary.cnf.{ILogical, LogOp}
-import org.chocosolver.solver.variables.{IntVar, SetVar}
+import org.chocosolver.solver.constraints.nary.cnf.LogOp
+import org.chocosolver.solver.variables.SetVar
 
-import scala.collection.mutable
+trait WithMembers[MemberType] extends WithSystemDelegates {
+  private[mpmens] def allMembers: Members[MemberType]
 
-trait WithMembers[MemberType] extends WithSolverModel with IntegerHelper {
-  this: System#
-  private[mpmens] def allMembersVar: SetVar
+  private[mpmens] var allMembersVar: SetVar = null
 
-  private[mpmens] var allMembers: Members[MemberType]
+  protected def setupWithMembers(): Unit = {
+    solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
+  }
 
   class Cardinality {
     def ==(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, "=", num).reify())
@@ -17,26 +18,16 @@ trait WithMembers[MemberType] extends WithSolverModel with IntegerHelper {
 
   def cardinality: Cardinality = new Cardinality
 
-  def sum(fun: MemberType => Integer): Integer = sumBasedOnMembership(allMembersVar, allMembers.values.map(fun))
+  def sum(fun: MemberType => Integer): Integer = system.IntegerUtils.sumBasedOnMembership(allMembersVar, allMembers.values.map(fun))
 
-  private def getImplies(fun: MemberType => Logical, combinator: Seq[ILogical] => LogOp, emptyBehavior: Boolean) = {
-    val clauses = mutable.ListBuffer.empty[ILogical]
+  def all(fun: MemberType => Logical): Logical =
+    system.LogicalUtils.conditionMembership(allMembers.values.map(fun), allMembersVar, LogOp.and(_ : _*), true)
 
-    for (idx <- 0 until allMembers.size) {
-      fun(allMembers.values(idx)) match {
-        case LogicalBoolean(value) => if (!value) clauses += solverModel.notMember(idx, allMembersVar).reify
-        case LogicalBoolVar(value) => clauses += LogOp.implies(solverModel.member(idx, allMembersVar).reify, value)
-        case LogicalLogOp(value) => clauses += LogOp.implies(solverModel.member(idx, allMembersVar).reify, value)
-      }
-    }
+  def some(fun: MemberType => Logical): Logical =
+    system.LogicalUtils.conditionMembership(allMembers.values.map(fun), allMembersVar, LogOp.or(_ : _*), false)
 
-    if (clauses.size > 0)
-      LogicalLogOp(combinator(clauses))
-    else
-      LogicalBoolean(emptyBehavior)
+  protected def selectedMembers = {
+    import scala.collection.JavaConverters._
+    for (idx <- allMembersVar.getValue.asScala) yield allMembers.values(idx)
   }
-
-  def all(fun: MemberType => Logical): Logical = getImplies(fun, LogOp.and(_ : _*), true)
-
-  def some(fun: MemberType => Logical): Logical = getImplies(fun, LogOp.or(_ : _*), false)
 }

@@ -1,7 +1,5 @@
 package mpmens.concerns.map2d
 
-import mpmens.model.Role
-
-trait PositionAware extends Role {
+trait PositionAware {
   var position: Position
 }
