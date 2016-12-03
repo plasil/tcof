@@ -18,7 +18,7 @@ class RescueSystem extends System {
       ambulances.all(x => ambulances.all(y => x.position.distanceTo(y.position) <= 4))
     )
 
-    utility(ambulances.sum(_.position.distanceTo(incident.position).round.toInt))
+    utility(ambulances.sum((x: Ambulance) => x.position.distanceTo(incident.position).round.toInt))
   }
 
   val rescueTeams = ensembles(universe.withRole[Incident] map(new RescueEnsemble(_)))

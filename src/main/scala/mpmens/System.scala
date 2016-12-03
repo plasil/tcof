@@ -7,8 +7,16 @@ import org.chocosolver.solver.variables.{BoolVar, IntVar, SetVar}
 
 import scala.collection.mutable
 
-class System extends WithSolverModel with MembersMixin with ImplicitsMixin with RolesMixin with EnsemblesMixin {
+class System extends WithSolverModel with LogicalMixin with IntegerMixin with MembersMixin with ImplicitsMixin with RolesMixin with EnsemblesMixin with WithUtility {
   system =>
+
+
+
+  trait SystemDelegates extends WithSolverModel with LogicalHelper with IntegerHelper {
+    def solverModel = system.solverModel
+
+    def sumBasedOnMembership(membersVar: SetVar, values: Array[Integer]): IntegerIntVar = sumBasedOnMembership(membersVar, values)
+  }
 
   /** Model used by the solver. */
   private[mpmens] val solverModel = new Model()
@@ -18,10 +26,6 @@ class System extends WithSolverModel with MembersMixin with ImplicitsMixin with 
 
   /** Internal method used in pretty-printing solving results */
   private[mpmens] def indent(str: String, level: Int) = str.lines.map("  " * level + _).mkString("\n")
-
-  trait WithSolverModelFromSystem extends WithSolverModel {
-    def solverModel = system.solverModel
-  }
 
   /** A set of all potential ensembles */
   private val ensembleGroups = mutable.ListBuffer.empty[EnsembleGroup[_]]
@@ -33,26 +37,21 @@ class System extends WithSolverModel with MembersMixin with ImplicitsMixin with 
   }
 
   def restart(): Unit = {
-    val utilityVars = for (x <- potentialEnsembles if x.utilityVar != null) yield x.utilityVar
-    if (utilityVars.size > 0) {
-      totalUtilityVar = solverModel.intVar(IntMinValue, IntMaxValue)
-      solverModel.sum(utilityVars toArray, "=", totalUtilityVar).post()
-      solverModel.setObjective(Model.MAXIMIZE, totalUtilityVar)
+    utility match {
+      case IntegerIntVar(utilityVar) => solverModel.setObjective(Model.MAXIMIZE, utilityVar)
     }
+
+    val clauses = ensembleGroups.map(_.setupEnsemblesAndGetMembershipClause())
+
+    clauses.
   }
 
   def solve(): Boolean = {
     solverModel.getSolver().solve()
   }
 
-  def solutionUtility: Int =
-    if (totalUtilityVar != null && totalUtilityVar.isInstantiated)
-      totalUtilityVar.getValue
-    else
-      0
-
   override def toString(): String =
-    s"""System (total utility: ${totalUtility}):
+    s"""System (total utility: ${solutionUtility}):
        |${ensembles.mkString("\n")}
      """.stripMargin
 }

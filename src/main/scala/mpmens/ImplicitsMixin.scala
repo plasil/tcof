@@ -7,7 +7,8 @@ trait ImplicitsMixin {
 
   object implicits {
     implicit def booleanToLogical(x: Boolean) = LogicalBoolean(x)
-    implicit def seqToItems[ComponentType <: Component](components: Seq[ComponentType]) = new MembersFromUniverse(components toArray)
-    implicit def roleToItems[ComponentType <: Component](role: Role[ComponentType]) = new MembersFromParent(role)
+    implicit def seqToMembers[ComponentType <: Component](components: Seq[ComponentType]) = new MembersFromUniverse(components toArray)
+    implicit def roleToMembers[ComponentType <: Component](role: Role[ComponentType]) = new MembersFromParent(role)
+    implicit def intToInteger(value: Int) = new IntegerInt(value)
   }
 }
