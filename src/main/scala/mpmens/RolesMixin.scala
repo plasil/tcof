@@ -9,8 +9,6 @@ trait RolesMixin {
   class Role[ComponentType <: Component](val name: String, private[mpmens] val allMembers: Members[ComponentType])
       extends SystemDelegates with WithMembers[ComponentType] {
 
-    setupWithMembers()
-
     allMembers.mapChildToParent(this)
 
     override def toString(): String =

@@ -33,6 +33,7 @@ trait LogicalMixin {
         case LogicalBoolean(value) if (!value) => solverModel.falseConstraint().post()
         case LogicalBoolVar(value) => solverModel.addClauseTrue(value)
         case LogicalLogOp(value) => solverModel.addClauses(value)
+        case _ =>
       }
     }
 
@@ -45,6 +46,7 @@ trait LogicalMixin {
           case LogicalBoolean(value) => if (!value) clauses += solverModel.notMember(idx, membersVar).reify
           case LogicalBoolVar(value) => clauses += LogOp.implies(solverModel.member(idx, membersVar).reify, value)
           case LogicalLogOp(value) => clauses += LogOp.implies(solverModel.member(idx, membersVar).reify, value)
+          case _ =>
         }
       }
 

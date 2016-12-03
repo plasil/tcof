@@ -5,12 +5,7 @@ import org.chocosolver.solver.variables.SetVar
 
 trait WithMembers[MemberType] extends WithSystemDelegates {
   private[mpmens] def allMembers: Members[MemberType]
-
-  private[mpmens] var allMembersVar: SetVar = null
-
-  protected def setupWithMembers(): Unit = {
-    solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
-  }
+  private[mpmens] var allMembersVar: SetVar = solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
 
   class Cardinality {
     def ==(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, "=", num).reify())

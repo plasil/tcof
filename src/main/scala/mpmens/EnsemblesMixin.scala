@@ -27,22 +27,16 @@ trait EnsemblesMixin {
 
     override def toString(): String =
       s"""Ensemble "$name" (utility: ${solutionUtility}):
-         |  Anchor: ${indent(anchor.toString, 2)}
+         |  Anchor:
+         |${indent(anchor.toString, 2)}
          |${indent(roles.values.mkString("\n"), 1)}
          |""".stripMargin
   }
 
-  class EnsembleGroup[EnsembleType <: Ensemble[_]](private val generator: () => Array[EnsembleType])
+  class EnsembleGroup[EnsembleType <: Ensemble[_]](private[mpmens] val allMembers: Members[EnsembleType])
       extends SystemDelegates with WithMembers[EnsembleType] {
 
-    private[mpmens] var allMembers: Members[EnsembleType] = null
-
-    private[mpmens] def setupEnsemblesAndGetMembershipClause() = {
-      allMembers = new MembersFromUniverse(generator()) /* TODO - here we should use either MembersFromUniverse or MembersFromParent depending on the nesting */
-      setupWithMembers()
-
-      LogicalUtils.conditionMembership(allMembers.map(_.membershipClause), allMembersVar, LogOp.and(_ : _*), true)
-    }
+    private[mpmens] val membershipClause = LogicalUtils.conditionMembership(allMembers.map(_.membershipClause), allMembersVar, LogOp.and(_ : _*), true)
 
     override def toString(): String =
       s"""Ensemble group:
@@ -53,8 +47,8 @@ trait EnsemblesMixin {
   /** A set of all potential ensembles */
   protected val ensembleGroups = mutable.ListBuffer.empty[EnsembleGroup[_]]
 
-  def ensembles[EnsembleType <: Ensemble[_]](generator: => Array[EnsembleType]): EnsembleGroup[EnsembleType] = {
-    val group = new EnsembleGroup(generator _)
+  def ensembles[EnsembleType <: Ensemble[_]](ens: Array[EnsembleType]): EnsembleGroup[EnsembleType] = {
+    val group = new EnsembleGroup(new MembersFromUniverse(ens))
     ensembleGroups += group
     group
   }

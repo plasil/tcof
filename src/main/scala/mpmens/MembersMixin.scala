@@ -12,8 +12,8 @@ trait MembersMixin {
 
       for (idx <- 0 until components.size) {
         components(idx) match {
-          case comp: RoleType =>
-            comps += comp
+          case comp: RoleType => comps += comp
+          case _ =>
         }
       }
 
@@ -44,6 +44,7 @@ trait MembersMixin {
           case comp: RoleType =>
             comps += comp
             idxs += idx
+          case _ =>
         }
       }
 
