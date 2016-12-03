@@ -38,7 +38,7 @@ trait EnsemblesMixin {
     private[mpmens] var allMembers: Members[EnsembleType] = null
 
     private[mpmens] def setupEnsemblesAndGetMembershipClause() = {
-      allMembers = generator()
+      allMembers = new MembersFromUniverse(generator()) /* TODO - here we should use either MembersFromUniverse or MembersFromParent depending on the nesting */
       setupWithMembers()
 
       LogicalUtils.conditionMembership(allMembers.map(_.membershipClause), allMembersVar, LogOp.and(_ : _*), true)

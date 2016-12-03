@@ -45,6 +45,8 @@ object Main {
       new Incident(Position(5, 6))
     )
 
+    println("System initialized")
+
     while (system.solve()) {
 //      println(s"Solution: ${ens1.utility} + ${ens2.utility} = ${system.totalUtility}\n" + system.toString())
       println(s"Solution:\n" + system.toString())
