@@ -5,13 +5,8 @@ import scala.reflect.ClassTag
   * In case the selection of members is dependent on the parent, it is specialized by MembersFromParent. In case the members
   * come from the universe (i.e. are not conditioned by existence in a parent), they are specialized as MembersFromUniverse.
   */
-abstract class Members[MemberType](private[mpmens] val values: Array[MemberType]) {
+abstract class Members[MemberType](private[mpmens] val values: Seq[MemberType]) {
   private[mpmens] def size = values.size
 
-  private[mpmens] def mapChildToParent(childRole: WithMembers[_]): Unit = {
-  }
-
-  def map[O : ClassTag](fun: MemberType => O): Array[O] = values map fun
-
-  def withRole[RoleType <: MemberType : ClassTag]: Members[RoleType]
+  def map[O : ClassTag](fun: MemberType => O): Seq[O] = values map fun
 }

@@ -6,7 +6,7 @@ trait IntegerMixin {
   this: SolverMixin =>
 
   private[mpmens] object IntegerUtils {
-    def sumBasedOnMembership(membersVar: SetVar, values: Array[Integer]): IntegerIntVar = {
+    def sumBasedOnMembership(membersVar: SetVar, values: Seq[Integer]): IntegerIntVar = {
       IntegerIntVar(
         if (values.forall(_.isInstanceOf[Int]))
           sumIntsBasedOnMembership(membersVar, values)
@@ -15,24 +15,27 @@ trait IntegerMixin {
       )
     }
 
-    private def sumIntsBasedOnMembership(membersVar: SetVar, values: Array[Integer]) = {
+    private def sumIntsBasedOnMembership(membersVar: SetVar, values: Seq[Integer]) = {
       val sumVar = newIntVar
-      solverModel.sumElements(membersVar, values.map(_.asInstanceOf[IntegerInt].value), sumVar).post()
+      solverModel.sumElements(membersVar, values.map(_.asInstanceOf[IntegerInt].value) toArray, sumVar).post()
       sumVar
     }
 
-    private def sumGenericBasedOnMembership(membersVar: SetVar, values: Array[Integer]): IntVar = {
+    private def sumGenericBasedOnMembership(membersVar: SetVar, values: Seq[Integer]): IntVar = {
       val condCostVars = new Array[IntVar](values.size)
 
-      for (idx <- 0 until values.size) {
+      var idx = 0
+      for (value <- values) {
         val condCostVar = newIntVar
-        val costVarContraint = values(idx) match {
+        val costVarContraint = value match {
           case IntegerInt(value) => solverModel.arithm(condCostVar, "=", value)
           case IntegerIntVar(value) => solverModel.arithm(condCostVar, "=", value)
         }
 
         solverModel.ifThenElse(solverModel.member(idx, membersVar), costVarContraint, solverModel.arithm(condCostVar, "=", 0))
         condCostVars(idx) = condCostVar
+
+        idx = idx + 1
       }
 
       val sumVar = newIntVar

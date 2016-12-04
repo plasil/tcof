@@ -36,15 +36,15 @@ abstract class LogicalWithILogic extends Logical {
   protected type ValueType <: ILogical
 
   override def &&(other: Logical): Logical = other match {
-    case other: LogicalBoolean if other.value => this
-    case other: LogicalBoolean if !other.value => other
+    case LogicalBoolean(true) => this
+    case LogicalBoolean(false) => other
     case other: LogicalLogOp => LogicalLogOp(LogOp.and(this.value, other.value))
     case other: LogicalBoolVar => LogicalLogOp(LogOp.and(this.value, other.value))
   }
 
   override def ||(other: Logical): Logical = other match {
-    case other: LogicalBoolean if !other.value => this
-    case other: LogicalBoolean if other.value => other
+    case LogicalBoolean(false) => this
+    case LogicalBoolean(true) => other
     case other: LogicalLogOp => LogicalLogOp(LogOp.or(this.value, other.value))
     case other: LogicalBoolVar => LogicalLogOp(LogOp.or(this.value, other.value))
   }

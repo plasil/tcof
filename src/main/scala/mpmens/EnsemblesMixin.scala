@@ -9,47 +9,30 @@ import scala.collection.mutable
 trait EnsemblesMixin {
   this: System =>
 
-  class Ensemble[AnchorType <: Component](val name: String, val anchor: AnchorType) extends WithUtility {
-    private val roles = mutable.Map.empty[String, Role[_]]
-    private[EnsemblesMixin] var membershipClause: Logical = null
-
-    def role[ComponentType <: Component](name: String, items: Members[ComponentType]) = {
-      val role = new Role[ComponentType](name, items)
-      roles += (name -> role)
-      role
-    }
-
-    def role[ComponentType <: Component](name: String) = roles(name).asInstanceOf[Role[ComponentType]]
+  class Ensemble[AnchorType <: Component](val name: String, val anchor: AnchorType) extends WithUtility with WithEnsembleGroups with WithRoles {
+    private[mpmens] var membershipClause: Logical = null
 
     def membership(clause: Logical): Unit = {
       membershipClause = clause
     }
 
-    override def toString(): String =
-      s"""Ensemble "$name" (utility: ${solutionUtility}):
-         |  Anchor:
-         |${indent(anchor.toString, 2)}
-         |${indent(roles.values.mkString("\n"), 1)}
-         |""".stripMargin
-  }
-
-  class EnsembleGroup[EnsembleType <: Ensemble[_]](private[mpmens] val allMembers: Members[EnsembleType])
-      extends SystemDelegates with WithMembers[EnsembleType] {
-
-    private[mpmens] val membershipClause = LogicalUtils.conditionMembership(allMembers.map(_.membershipClause), allMembersVar, LogOp.and(_ : _*), true)
+    private[mpmens] def ensembleClause: Logical =
+      if (membershipClause != null)
+        ensembleGroupClause && membershipClause
+      else ensembleGroupClause
 
     override def toString(): String =
-      s"""Ensemble group:
-         |${indent(selectedMembers.mkString("\n"), 1)}
-         |""".stripMargin
+      s"""Ensemble "$name" (utility: ${solutionUtility}):""" +
+      (if (anchor != null)
+        s"""
+           |  Anchor:
+           |${indent(anchor.toString, 2)}
+           |""".stripMargin
+      else
+        "\n"
+      ) +
+      s"""${indent(roles.values.mkString("\n"), 1)}${indent(ensembleGroups.mkString("\n"), 1)}"""
+
   }
 
-  /** A set of all potential ensembles */
-  protected val ensembleGroups = mutable.ListBuffer.empty[EnsembleGroup[_]]
-
-  def ensembles[EnsembleType <: Ensemble[_]](ens: Array[EnsembleType]): EnsembleGroup[EnsembleType] = {
-    val group = new EnsembleGroup(new MembersFromUniverse(ens))
-    ensembleGroups += group
-    group
-  }
 }

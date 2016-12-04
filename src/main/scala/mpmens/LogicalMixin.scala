@@ -38,16 +38,19 @@ trait LogicalMixin {
     }
 
     /** Creates clauses that express the fact the membership in membersVar implies corresponding Logical in membersClauses */
-    def conditionMembership(membersClauses: Array[Logical], membersVar: SetVar, combinator: Seq[ILogical] => LogOp, emptyBehavior: Boolean) = {
+    def conditionMembership(membersClauses: Seq[Logical], membersVar: SetVar, combinator: Seq[ILogical] => LogOp, emptyBehavior: Boolean) = {
       val clauses = mutable.ListBuffer.empty[ILogical]
 
-      for (idx <- 0 until membersClauses.size) {
-        membersClauses(idx) match {
+      var idx = 0
+      for (clause <- membersClauses) {
+        clause match {
           case LogicalBoolean(value) => if (!value) clauses += solverModel.notMember(idx, membersVar).reify
           case LogicalBoolVar(value) => clauses += LogOp.implies(solverModel.member(idx, membersVar).reify, value)
           case LogicalLogOp(value) => clauses += LogOp.implies(solverModel.member(idx, membersVar).reify, value)
           case _ =>
         }
+
+        idx = idx + 1
       }
 
       if (clauses.size > 0)

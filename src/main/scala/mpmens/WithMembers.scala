@@ -26,3 +26,4 @@ trait WithMembers[MemberType] extends WithSystemDelegates {
     for (idx <- allMembersVar.getValue.asScala) yield allMembers.values(idx)
   }
 }
+
