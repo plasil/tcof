@@ -15,7 +15,7 @@ class RescueSystem() extends System {
       ambulances.all(x => ambulances.all(y => x.position.distanceTo(y.position) <= 8))
     )
 
-    utility(ambulances.sum((x: Ambulance) => 100 - x.position.distanceTo(incident.position).round.toInt))
+    utility(ambulances.sum(100 - _.position.distanceTo(incident.position).round.toInt))
   }
 
   system {

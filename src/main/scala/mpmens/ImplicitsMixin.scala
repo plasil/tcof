@@ -1,7 +1,5 @@
 package mpmens
 
-import mpmens.model.Component
-
 import scala.reflect.ClassTag
 
 trait ImplicitsMixin {

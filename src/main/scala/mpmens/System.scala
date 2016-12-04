@@ -1,7 +1,6 @@
 package mpmens
 
 import example.Incident
-import mpmens.model.Component
 import org.chocosolver.solver.Model
 
 import scala.collection.mutable

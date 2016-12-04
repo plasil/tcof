@@ -1,6 +1,5 @@
 package mpmens
 
-import mpmens.model.Component
 import org.chocosolver.solver.constraints.nary.cnf.LogOp
 
 import scala.collection.mutable

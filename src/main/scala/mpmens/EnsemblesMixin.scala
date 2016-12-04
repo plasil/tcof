@@ -1,6 +1,5 @@
 package mpmens
 
-import mpmens.model.Component
 import org.chocosolver.solver.constraints.nary.cnf.{ILogical, LogOp}
 import org.chocosolver.solver.variables.{IntVar, SetVar}
 
