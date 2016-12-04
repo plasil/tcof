@@ -17,8 +17,18 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
   /** Internal method used in pretty-printing solving results */
   private[mpmens] def indent(str: String, level: Int) = str.lines.map("  " * level + _).mkString("\n") + (if (str.endsWith("\n")) "\n" else "")
 
-  def ensembles[EnsembleType <: Ensemble](ens: Seq[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ens)
-  def ensembles[EnsembleType <: Ensemble](ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = ensembles(ensRest.+:(ensFirst))
+  private var randomNameIdx = 0
+  private[mpmens] def randomName = {
+    val name = f"<$randomNameIdx%06d>"
+    randomNameIdx = randomNameIdx + 1
+    name
+  }
+
+  def ensembles[EnsembleType <: Ensemble](ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ensFirst, ensRest : _*)
+  def ensembles[EnsembleType <: Ensemble](ens: Iterable[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ens)
+  def ensembles[EnsembleType <: Ensemble](name: String, ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name, ensFirst, ensRest : _*)
+  def ensembles[EnsembleType <: Ensemble](name: String, ens: Iterable[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name, ens)
+  def ensembles[EnsembleType <: Ensemble](name: String): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name)
   def utility_= (cst: Integer): Unit = rootEnsemble.utility = cst
   def utility: Integer = rootEnsemble.utility
   def membership(clause: Logical): Unit = rootEnsemble.membership(clause)
@@ -46,12 +56,12 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
 
     rootEnsembleInit()
 
-    for (group <- ensembleGroups) {
+    for (group <- ensembleGroups.values) {
       group.allMembers.mapEnsembleActivationRecursive(group)
     }
 
     if (utility == null) {
-      utility = IntegerUtils.sum(ensembleGroups.map(_.sum(_.utility)))
+      utility = IntegerUtils.sum(ensembleGroups.values.map(_.sum(_.utility)))
     }
 
     utility match {
@@ -64,7 +74,7 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
 
   private var rootEnsemble: RootEnsemble = null
 
-  private var _universe: Seq[Component] = Seq()
+  private var _universe = Seq.empty[Component]
 
   def components_= (univ: Seq[Component]): Unit = _universe = univ
 

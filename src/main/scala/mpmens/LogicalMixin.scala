@@ -9,7 +9,7 @@ trait LogicalMixin {
   this: Universe =>
 
   private[mpmens] object LogicalUtils {
-    def and(clauses: Seq[Logical]): Logical = {
+    def and(clauses: Iterable[Logical]): Logical = {
       if (clauses.exists(_ match {
         case LogicalBoolean(value) if (!value) => true
         case _ => false
@@ -24,7 +24,7 @@ trait LogicalMixin {
           case LogicalBoolVar(value) => value
         }
 
-        LogicalLogOp(LogOp.and(ilogs: _*))
+        LogicalLogOp(LogOp.and(ilogs toArray: _*))
       }
     }
 
@@ -38,7 +38,7 @@ trait LogicalMixin {
     }
 
     /** Creates clauses that express the fact the membership in membersVar implies corresponding Logical in membersClauses */
-    def forAllSelected(membersClauses: Seq[Logical], membersVar: SetVar) = {
+    def forAllSelected(membersClauses: Iterable[Logical], membersVar: SetVar) = {
       val clauses = mutable.ListBuffer.empty[ILogical]
 
       var idx = 0
@@ -59,7 +59,7 @@ trait LogicalMixin {
         LogicalBoolean(true)
     }
 
-    def existsSelected(membersClauses: Seq[Logical], membersVar: SetVar) = {
+    def existsSelected(membersClauses: Iterable[Logical], membersVar: SetVar) = {
       val clauses = mutable.ListBuffer.empty[ILogical]
 
       var idx = 0

@@ -6,7 +6,7 @@ trait IntegerMixin {
   this: Universe =>
 
   private[mpmens] object IntegerUtils {
-    def sum(values: Seq[Integer]): Integer = {
+    def sum(values: Iterable[Integer]): Integer = {
       val constValue = values.collect{case x: IntegerInt => x}.foldLeft(0)(_ + _.value)
       val intVars = values.collect{case x: IntegerIntVar => x}.map(_.value)
 
@@ -29,7 +29,7 @@ trait IntegerMixin {
       }
     }
 
-    def sumBasedOnMembership(membersVar: SetVar, values: Seq[Integer]): IntegerIntVar = {
+    def sumBasedOnMembership(membersVar: SetVar, values: Iterable[Integer]): IntegerIntVar = {
       IntegerIntVar(
         if (values.forall(_.isInstanceOf[IntegerInt]))
           sumIntsBasedOnMembership(membersVar, values)
@@ -38,13 +38,13 @@ trait IntegerMixin {
       )
     }
 
-    private def sumIntsBasedOnMembership(membersVar: SetVar, values: Seq[Integer]) = {
+    private def sumIntsBasedOnMembership(membersVar: SetVar, values: Iterable[Integer]) = {
       val sumVar = newIntVar
       solverModel.sumElements(membersVar, values.map(_.asInstanceOf[IntegerInt].value) toArray, sumVar).post()
       sumVar
     }
 
-    private def sumGenericBasedOnMembership(membersVar: SetVar, values: Seq[Integer]): IntVar = {
+    private def sumGenericBasedOnMembership(membersVar: SetVar, values: Iterable[Integer]): IntVar = {
       val condCostVars = new Array[IntVar](values.size)
 
       var idx = 0

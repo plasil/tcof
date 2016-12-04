@@ -30,9 +30,10 @@ trait WithMembers[+MemberType] extends WithSystemDelegates {
   def some(fun: MemberType => Logical): Logical =
     universe.LogicalUtils.existsSelected(allMembers.values.map(fun), allMembersVar)
 
-  protected def selectedMembers = {
+  def selectedMembers: Iterable[MemberType] = {
     import scala.collection.JavaConverters._
-    for (idx <- allMembersVar.getValue.asScala) yield allMembers.values(idx)
+    val values = allMembers.values.toIndexedSeq
+    for (idx <- allMembersVar.getValue.asScala) yield values(idx)
   }
 }
 
