@@ -58,7 +58,7 @@ object Main {
         }
       }
 
-      println(RescueScenario.toString())
+      println(RescueScenario.toString)
     }
 
   }

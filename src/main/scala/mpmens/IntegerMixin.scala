@@ -10,7 +10,7 @@ trait IntegerMixin {
       val constValue = values.collect{case x: IntegerInt => x}.foldLeft(0)(_ + _.value)
       val intVars = values.collect{case x: IntegerIntVar => x}.map(_.value)
 
-      if (intVars.size == 0) {
+      if (intVars.isEmpty) {
         IntegerInt(constValue)
       } else {
         val sumVar =
@@ -50,12 +50,12 @@ trait IntegerMixin {
       var idx = 0
       for (value <- values) {
         val condCostVar = newIntVar
-        val costVarContraint = value match {
-          case IntegerInt(value) => solverModel.arithm(condCostVar, "=", value)
-          case IntegerIntVar(value) => solverModel.arithm(condCostVar, "=", value)
+        val costVarConstraint = value match {
+          case IntegerInt(intVal) => solverModel.arithm(condCostVar, "=", intVal)
+          case IntegerIntVar(intVar) => solverModel.arithm(condCostVar, "=", intVar)
         }
 
-        solverModel.ifThenElse(solverModel.member(idx, membersVar), costVarContraint, solverModel.arithm(condCostVar, "=", 0))
+        solverModel.ifThenElse(solverModel.member(idx, membersVar), costVarConstraint, solverModel.arithm(condCostVar, "=", 0))
         condCostVars(idx) = condCostVar
 
         idx = idx + 1

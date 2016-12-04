@@ -18,15 +18,9 @@ abstract class Logical {
 case class LogicalBoolean(value: Boolean) extends Logical {
   protected type ValueType = Boolean
 
-  override def &&(other: Logical): Logical = other match {
-    case _ if !value => this
-    case other => other
-  }
+  override def &&(other: Logical): Logical = if (!value) this else other
 
-  override def ||(other: Logical): Logical = other match {
-    case _ if value => this
-    case other => other
-  }
+  override def ||(other: Logical): Logical = if (value) this else other
 
   override def unary_!(): Logical = LogicalBoolean(!value)
 }

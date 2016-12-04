@@ -1,9 +1,6 @@
 package mpmens
 
-import org.chocosolver.solver.constraints.nary.cnf.LogOp
-
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
 trait EnsembleGroupsMixin {
   this: Universe =>
@@ -43,7 +40,7 @@ trait EnsembleGroupsMixin {
       group
     }
 
-    def ensembles[EnsembleType <: Ensemble](name: String) = ensembleGroups(name).asInstanceOf[EnsembleGroup[EnsembleType]]
+    def ensembles[EnsembleType <: Ensemble](name: String): EnsembleGroup[EnsembleType] = ensembleGroups(name).asInstanceOf[EnsembleGroup[EnsembleType]]
 
     private[mpmens] def ensembleGroupClause: Logical = LogicalUtils.and(ensembleGroups.values.map(_.membershipClause))
   }
@@ -53,7 +50,7 @@ trait EnsembleGroupsMixin {
 
     private[mpmens] val membershipClause = LogicalUtils.forAllSelected(allMembers.map(_.ensembleClause), allMembersVar)
 
-    override def toString(): String =
+    override def toString: String =
       s"""Ensemble group "$name":\n${indent(selectedMembers.mkString(""), 1)}"""
   }
 

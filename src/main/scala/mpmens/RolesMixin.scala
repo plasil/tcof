@@ -11,13 +11,13 @@ trait RolesMixin {
 
     allMembers.mapChildToParent(this)
 
-    override def toString(): String =
+    override def toString: String =
       s"""Role "$name":\n${indent(selectedMembers.map(_ + "\n").mkString(""), 1)}"""
   }
 
 
   trait WithRoles {
-    protected val roles = mutable.Map.empty[String, Role[Component]]
+    protected val roles: mutable.Map[String, Role[Component]] = mutable.Map.empty[String, Role[Component]]
 
     def role[ComponentType <: Component](items: RoleMembers[ComponentType]): Role[ComponentType] = role(randomName, items)
 
