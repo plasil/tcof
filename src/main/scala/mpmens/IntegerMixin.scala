@@ -3,12 +3,35 @@ package mpmens
 import org.chocosolver.solver.variables.{IntVar, SetVar}
 
 trait IntegerMixin {
-  this: SolverMixin =>
+  this: Universe =>
 
   private[mpmens] object IntegerUtils {
+    def sum(values: Seq[Integer]): Integer = {
+      val constValue = values.collect{case x: IntegerInt => x}.foldLeft(0)(_ + _.value)
+      val intVars = values.collect{case x: IntegerIntVar => x}.map(_.value)
+
+      if (intVars.size == 0) {
+        IntegerInt(constValue)
+      } else {
+        val sumVar =
+          if (intVars.size == 1) // Not sure whether this optimization has any real effect. However since I wrote it already, I keep it here.
+            intVars.head
+          else {
+            val sumVar = newIntVar
+            solverModel.sum(intVars toArray, "=", sumVar).post()
+            sumVar
+          }
+
+        if (constValue == 0)
+          IntegerIntVar(sumVar)
+        else
+          addIntAndIntVar(constValue, sumVar)
+      }
+    }
+
     def sumBasedOnMembership(membersVar: SetVar, values: Seq[Integer]): IntegerIntVar = {
       IntegerIntVar(
-        if (values.forall(_.isInstanceOf[Int]))
+        if (values.forall(_.isInstanceOf[IntegerInt]))
           sumIntsBasedOnMembership(membersVar, values)
         else
           sumGenericBasedOnMembership(membersVar, values)

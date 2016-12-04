@@ -6,9 +6,9 @@ import org.chocosolver.solver.variables.{IntVar, SetVar}
 import scala.collection.mutable
 
 trait EnsemblesMixin {
-  this: System =>
+  this: Universe =>
 
-  class Ensemble[AnchorType <: Component](val name: String, val anchor: AnchorType) extends WithUtility with WithEnsembleGroups with WithRoles {
+  class Ensemble(val name: String) extends WithUtility with WithEnsembleGroups with WithRoles {
     private[mpmens] var membershipClause: Logical = null
 
     def membership(clause: Logical): Unit = {
@@ -21,17 +21,7 @@ trait EnsemblesMixin {
       else ensembleGroupClause
 
     override def toString(): String =
-      s"""Ensemble "$name" (utility: ${solutionUtility}):""" +
-      (if (anchor != null)
-        s"""
-           |  Anchor:
-           |${indent(anchor.toString, 2)}
-           |""".stripMargin
-      else
-        "\n"
-      ) +
-      s"""${indent(roles.values.mkString("\n"), 1)}${indent(ensembleGroups.mkString("\n"), 1)}"""
-
+      s"""Ensemble "$name" (utility: ${solutionUtility}):\n${indent(roles.values.mkString(""), 1)}${indent(ensembleGroups.mkString(""), 1)}"""
   }
 
 }

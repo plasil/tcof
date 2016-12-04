@@ -6,7 +6,7 @@ import org.chocosolver.solver.variables.{BoolVar, SetVar}
 import scala.collection.mutable
 
 trait LogicalMixin {
-  this: SolverMixin =>
+  this: Universe =>
 
   private[mpmens] object LogicalUtils {
     def and(clauses: Seq[Logical]): Logical = {
@@ -38,7 +38,7 @@ trait LogicalMixin {
     }
 
     /** Creates clauses that express the fact the membership in membersVar implies corresponding Logical in membersClauses */
-    def conditionMembership(membersClauses: Seq[Logical], membersVar: SetVar, combinator: Seq[ILogical] => LogOp, emptyBehavior: Boolean) = {
+    def forAllSelected(membersClauses: Seq[Logical], membersVar: SetVar) = {
       val clauses = mutable.ListBuffer.empty[ILogical]
 
       var idx = 0
@@ -54,9 +54,30 @@ trait LogicalMixin {
       }
 
       if (clauses.size > 0)
-        LogicalLogOp(combinator(clauses))
+        LogicalLogOp(LogOp.and(clauses : _*))
       else
-        LogicalBoolean(emptyBehavior)
+        LogicalBoolean(true)
+    }
+
+    def existsSelected(membersClauses: Seq[Logical], membersVar: SetVar) = {
+      val clauses = mutable.ListBuffer.empty[ILogical]
+
+      var idx = 0
+      for (clause <- membersClauses) {
+        clause match {
+          case LogicalBoolean(value) => if (value) clauses += solverModel.member(idx, membersVar).reify
+          case LogicalBoolVar(value) => clauses += LogOp.and(solverModel.member(idx, membersVar).reify, value)
+          case LogicalLogOp(value) => clauses += LogOp.and(solverModel.member(idx, membersVar).reify, value)
+          case _ =>
+        }
+
+        idx = idx + 1
+      }
+
+      if (clauses.size > 0)
+        LogicalLogOp(LogOp.or(clauses : _*))
+      else
+        LogicalBoolean(false)
     }
   }
 }

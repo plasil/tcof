@@ -3,6 +3,6 @@ package mpmens
 import org.chocosolver.solver.Model
 
 trait WithSystemDelegates {
-  def system: System
+  val universe: Universe
   def solverModel: Model
 }
