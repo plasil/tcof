@@ -1,29 +1,36 @@
 package mpmens
 
-import example.Incident
 import org.chocosolver.solver.Model
-
-import scala.collection.mutable
 
 
 class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin with RoleMembersMixin with ImplicitsMixin with RolesMixin with EnsembleGroupsMixin with EnsemblesMixin {
   uniThis =>
 
   trait SystemDelegates extends WithSystemDelegates {
-    val universe = uniThis
-    def solverModel = uniThis.solverModel
+    val universe: Universe = uniThis
+    def solverModel: Model = uniThis.solverModel
   }
 
   /** Internal method used in pretty-printing solving results */
   private[mpmens] def indent(str: String, level: Int) = str.lines.map("  " * level + _).mkString("\n") + (if (str.endsWith("\n")) "\n" else "")
 
-  def ensembles[EnsembleType <: Ensemble](ens: Seq[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ens)
-  def ensembles[EnsembleType <: Ensemble](ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = ensembles(ensRest.+:(ensFirst))
+  private var randomNameIdx = 0
+  private[mpmens] def randomName = {
+    val name = f"<$randomNameIdx%06d>"
+    randomNameIdx = randomNameIdx + 1
+    name
+  }
+
+  def ensembles[EnsembleType <: Ensemble](ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ensFirst, ensRest : _*)
+  def ensembles[EnsembleType <: Ensemble](ens: Iterable[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ens)
+  def ensembles[EnsembleType <: Ensemble](name: String, ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name, ensFirst, ensRest : _*)
+  def ensembles[EnsembleType <: Ensemble](name: String, ens: Iterable[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name, ens)
+  def ensembles[EnsembleType <: Ensemble](name: String): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name)
   def utility_= (cst: Integer): Unit = rootEnsemble.utility = cst
-  def utility: Integer = rootEnsemble.utility
+  def utility: Option[Integer] = rootEnsemble.utility
   def membership(clause: Logical): Unit = rootEnsemble.membership(clause)
 
-  private var rootEnsembleInit: () => Unit = null
+  private var rootEnsembleInit: () => Unit = _
 
   def systems(initFun: => Unit): Unit = {
     rootEnsembleInit = initFun _
@@ -40,31 +47,31 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
   private[mpmens] def solverModel = rootEnsemble.solverModel
 
   class RootEnsemble extends Ensemble("<root>") {
-    // Though ugly, this is needed the delegators above (ensembles, utility) call this instance from the rootEnsembleInit below.
+    // Though ugly, this is needed for the delegates above (ensembles, utility) call this instance from the rootEnsembleInit below.
     rootEnsemble = this
     private[mpmens] val solverModel = new Model()
 
     rootEnsembleInit()
 
-    for (group <- ensembleGroups) {
+    for (group <- ensembleGroups.values) {
       group.allMembers.mapEnsembleActivationRecursive(group)
     }
 
-    if (utility == null) {
-      utility = IntegerUtils.sum(ensembleGroups.map(_.sum(_.utility)))
+    if (utility.isEmpty) {
+      utility = IntegerUtils.sum(ensembleGroups.values.map(_.sum(_.utility.getOrElse(IntegerInt(0)))))
     }
 
     utility match {
-      case IntegerIntVar(utilityVar) => solverModel.setObjective(Model.MAXIMIZE, utilityVar)
+      case Some(IntegerIntVar(utilityVar)) => solverModel.setObjective(Model.MAXIMIZE, utilityVar)
       case _ =>
     }
 
     LogicalUtils.post(ensembleClause)
   }
 
-  private var rootEnsemble: RootEnsemble = null
+  private var rootEnsemble: RootEnsemble = _
 
-  private var _universe: Seq[Component] = Seq()
+  private var _universe = Seq.empty[Component]
 
   def components_= (univ: Seq[Component]): Unit = _universe = univ
 
@@ -75,10 +82,10 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
   }
 
   def solve(): Boolean = {
-    solverModel.getSolver().solve()
+    solverModel.getSolver.solve()
   }
 
   def solutionUtility: Int = rootEnsemble.solutionUtility
 
-  override def toString(): String = rootEnsemble.toString
+  override def toString: String = rootEnsemble.toString
 }

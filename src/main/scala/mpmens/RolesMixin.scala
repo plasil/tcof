@@ -11,21 +11,23 @@ trait RolesMixin {
 
     allMembers.mapChildToParent(this)
 
-    override def toString(): String =
-      s"""Role "$name"\n${indent(selectedMembers.map(_ + "\n").mkString(""), 1)}"""
+    override def toString: String =
+      s"""Role "$name":\n${indent(selectedMembers.map(_ + "\n").mkString(""), 1)}"""
   }
 
 
   trait WithRoles {
-    protected val roles = mutable.Map.empty[String, Role[Component]]
+    protected val roles: mutable.Map[String, Role[Component]] = mutable.Map.empty[String, Role[Component]]
 
-    def role[ComponentType <: Component](name: String, items: RoleMembers[ComponentType]) = {
+    def role[ComponentType <: Component](items: RoleMembers[ComponentType]): Role[ComponentType] = role(randomName, items)
+
+    def role[ComponentType <: Component](name: String, items: RoleMembers[ComponentType]): Role[ComponentType] = {
       val role = new Role[ComponentType](name, items)
-      roles += (name -> role)
+      roles += name -> role
       role
     }
 
-    def role[ComponentType <: Component](name: String) = roles(name).asInstanceOf[Role[ComponentType]]
+    def role[ComponentType <: Component](name: String): Role[ComponentType] = roles(name).asInstanceOf[Role[ComponentType]]
 
   }
 

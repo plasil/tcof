@@ -1,13 +1,12 @@
 package mpmens
 
-import org.chocosolver.solver.constraints.nary.cnf.LogOp
 import org.chocosolver.solver.variables.SetVar
 
 trait WithMembers[+MemberType] extends WithSystemDelegates {
-  import universe.implicits._
 
   private[mpmens] def allMembers: Members[MemberType]
-  private[mpmens] var allMembersVar: SetVar = solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
+
+  private[mpmens] val allMembersVar: SetVar = solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
 
   class Cardinality {
     def ==(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, "=", num).reify())
@@ -30,9 +29,10 @@ trait WithMembers[+MemberType] extends WithSystemDelegates {
   def some(fun: MemberType => Logical): Logical =
     universe.LogicalUtils.existsSelected(allMembers.values.map(fun), allMembersVar)
 
-  protected def selectedMembers = {
+  def selectedMembers: Iterable[MemberType] = {
     import scala.collection.JavaConverters._
-    for (idx <- allMembersVar.getValue.asScala) yield allMembers.values(idx)
+    val values = allMembers.values.toIndexedSeq
+    for (idx <- allMembersVar.getValue.asScala) yield values(idx)
   }
 }
 

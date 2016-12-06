@@ -1,33 +1,21 @@
-# Created by .ignore support plugin (hsz.mobi)
-### SBT template
-# Simple Build Tool
-# http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
-
 target/
 lib_managed/
 src_managed/
 project/boot/
 .history
 .cache
-### Scala template
+
 *.class
 *.log
 
-# sbt specific
-.cache
-.history
 .lib/
 dist/*
-target/
-lib_managed/
-src_managed/
-project/boot/
 project/plugins/project/
 
-# Scala-IDE specific
 .scala_dependencies
 .worksheet
 
+<<<<<<< HEAD
 # ENSIME specific
 .ensime_cache/
 .ensime
@@ -53,3 +41,5 @@ project/plugins/project/
 .idea/libraries/SBT__org_scala_lang_scala_reflect_2_12_0_jar.xml
 .idea/modules/mpmens-build.iml
 .idea/modules/mpmens.iml
+=======
+>>>>>>> cdcb9427d638a8e8316ddc5df441cd7e3a4ffa63

@@ -3,40 +3,25 @@ package example
 import mpmens.Universe
 import mpmens.concerns.map2d.Position
 
-class RescueScenario extends Universe {
+object RescueScenario extends Universe {
   import implicits._
 
-  class CityRescueSystem(name: String) extends Ensemble("City Rescue System " + name) {
-    val all = role("all", components)
-
-    class IncidentResponseTeam(val incident: Incident) extends Ensemble("Incident Response Team for " + incident) {
-      val ambulances = role("ambulances", all.withRole[Ambulance])
-
-      membership(
-        all.contains(incident) &&
-        ambulances.cardinality >= 1 &&
-        ambulances.all(_.position.distanceTo(incident.position) <= 5) &&
-        ambulances.all(x => ambulances.all(y => x.position.distanceTo(y.position) <= 8))
-      )
-
-      utility = ambulances.sum(100 - _.position.distanceTo(incident.position).round.toInt)
-    }
-
-    val rescueTeams = ensembles(all.withRole[Incident].map(new IncidentResponseTeam(_)))
+  class IncidentResponseTeam(val incident: Incident) extends Ensemble("Incident Response Team for " + incident) {
+    val ambulances = role("ambulances", components.withRole[Ambulance])
 
     membership(
-      all.cardinality == components.size / 2 &&
-      rescueTeams.map(_.ambulances).allDisjoint
+      ambulances.cardinality >= 1 &&
+      ambulances.all(_.position.distanceTo(incident.position) <= 5)
     )
 
-    utility = rescueTeams.sum(_.utility)
+    utility = ambulances.sum(100 - _.position.distanceTo(incident.position).round.toInt)
   }
 
   systems {
-    val systems = ensembles(new CityRescueSystem("#1"), new CityRescueSystem("#2"))
+    val rescueTeams = ensembles("rescueTeams", components.withRole[Incident].map(new IncidentResponseTeam(_)))
 
     membership(
-      systems.map(_.all).allDisjoint
+      rescueTeams.map(_.ambulances).allDisjoint
     )
   }
 }
@@ -46,11 +31,9 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    val scenario = new RescueScenario
-
     println("System instantiated")
 
-    scenario.components = List(
+    RescueScenario.components = List(
       Ambulance(Position(3, 4)),
       Ambulance(Position(7, 3)),
       Ambulance(Position(5, 7)),
@@ -61,31 +44,21 @@ object Main {
       Incident(Position(5, 6))
     )
 
-    scenario.init()
+    RescueScenario.init()
 
     println("System initialized")
 
-    while (scenario.solve()) {
-      println(scenario.toString())
-    }
+    while (RescueScenario.solve()) {
 
+      val rescueTeams = RescueScenario.ensembles[RescueScenario.IncidentResponseTeam]("rescueTeams")
+      for (team <- rescueTeams.selectedMembers) {
+        println("RescueTeam " + team.name)
+        for (ambulance <- team.ambulances.selectedMembers) {
+          println(ambulance.position)
+        }
+      }
 
-    scenario.components = List(
-      Ambulance(Position(3, 4)),
-      Ambulance(Position(7, 3)),
-      Ambulance(Position(5, 7)),
-      Ambulance(Position(2, 4)),
-      Ambulance(Position(3, 5)),
-      Ambulance(Position(6, 7)),
-      Incident(Position(5, 6))
-    )
-
-    scenario.init()
-
-    println("System reinitialized")
-
-    while (scenario.solve()) {
-      println(scenario.toString())
+      println(RescueScenario.toString)
     }
 
   }
