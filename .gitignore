@@ -15,31 +15,7 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
-<<<<<<< HEAD
-# ENSIME specific
 .ensime_cache/
 .ensime
 
-.idea/.name
-.idea/compiler.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/sbt.xml
-.idea/scala_compiler.xml
-.idea/vcs.xml
-.idea/workspace.xml
-.idea/copyright/profiles_settings.xml
-.idea/libraries/SBT__args4j_args4j_2_33_jar.xml
-.idea/libraries/SBT__com_github_cp_profiler_cpprof_java_1_2_0_jar.xml
-.idea/libraries/SBT__com_google_protobuf_protobuf_java_2_6_1_jar.xml
-.idea/libraries/SBT__dk_brics_automaton_automaton_1_11_8_jar.xml
-.idea/libraries/SBT__net_sf_trove4j_trove4j_3_0_3_jar.xml
-.idea/libraries/SBT__org_choco_solver_choco_sat_1_0_2_jar.xml
-.idea/libraries/SBT__org_choco_solver_choco_solver_4_0_0_jar.xml
-.idea/libraries/SBT__org_javabits_jgrapht_jgrapht_core_0_9_3_jar.xml
-.idea/libraries/SBT__org_scala_lang_scala_library_2_12_0_jar.xml
-.idea/libraries/SBT__org_scala_lang_scala_reflect_2_12_0_jar.xml
-.idea/modules/mpmens-build.iml
-.idea/modules/mpmens.iml
-=======
->>>>>>> cdcb9427d638a8e8316ddc5df441cd7e3a4ffa63
+.idea/
