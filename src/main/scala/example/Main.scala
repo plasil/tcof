@@ -4,7 +4,6 @@ import mpmens.Universe
 import mpmens.concerns.map2d.Position
 
 object RescueScenario extends Universe {
-  import implicits._
 
   class IncidentResponseTeam(val incident: Incident) extends Ensemble("Incident Response Team for " + incident) {
     val ambulances = role("ambulances", components.withRole[Ambulance])
