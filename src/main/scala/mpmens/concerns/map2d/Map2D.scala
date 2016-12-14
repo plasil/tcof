@@ -16,7 +16,8 @@ class Map2D {
         else {
           val (node, cost) = active.head
           val neighbours = (for {
-            edge <- node.neighbors.values if !acc.contains(edge.to) //&& cost + edge.length < active.getOrElse(edge.to, Int.MaxValue)
+            edge <- node.neighbors.values
+            if !acc.contains(edge.to) && cost + edge.length < active.getOrElse(edge.to, Double.MaxValue)
           } yield edge.to -> (cost + edge.length)) toMap
           val preds = neighbours mapValues (_ => node)
           go(active.tail ++ neighbours, acc + (node -> cost), pred ++ preds)
@@ -45,10 +46,10 @@ class Map2D {
   }
 
   private var _nodes = List.empty[Node]
-  private var _edges = List.empty[DirectedEdge]
+  private var _edges = List.empty[Edge]
 
   def nodes: List[Node] = _nodes
-  def edges: List[DirectedEdge] = _edges
+  def edges: List[Edge] = _edges
 
   def addNode(center: Position): Node = {
     val node = new Node(center)
@@ -56,13 +57,13 @@ class Map2D {
     node
   }
 
-  def addDirectedEdge(from: Node, to: Node): DirectedEdge = from._neighbors.get(to) match {
+  def addDirectedEdge(from: Node, to: Node): Edge = from._neighbors.get(to) match {
     case Some(edge) => edge
 
     case None =>
-      val edge = new DirectedEdge(from, to)
+      val edge = new Edge(from, to)
       _edges = _edges :+ edge
-      from._neighbors = from._neighbors + (from -> edge)
+      from._neighbors = from._neighbors + (to -> edge)
       edge
   }
 

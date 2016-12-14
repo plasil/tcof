@@ -19,7 +19,7 @@ trait WithMembers[+MemberType] extends WithSystemDelegates {
 
   def cardinality: Cardinality = new Cardinality
 
-  def contains(component: Component): Logical = some(_ == component)
+  def contains(component: Component): Logical = some((x) => LogicalBoolean(x == component))
 
   def sum(fun: MemberType => Integer): Integer = universe.IntegerUtils.sumBasedOnMembership(allMembersVar, allMembers.values.map(fun))
 

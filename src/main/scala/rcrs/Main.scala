@@ -11,8 +11,6 @@ import rescuecore2.standard.messages.StandardMessageFactory
 
 object Main {
   def main(args: Array[String]): Unit = {
-    Logger.setLogContext("sample")
-
     Registry.SYSTEM_REGISTRY.registerEntityFactory(StandardEntityFactory.INSTANCE)
     Registry.SYSTEM_REGISTRY.registerMessageFactory(StandardMessageFactory.INSTANCE)
     Registry.SYSTEM_REGISTRY.registerPropertyFactory(StandardPropertyFactory.INSTANCE)
@@ -26,7 +24,7 @@ object Main {
     val launcher = new TCPComponentLauncher(host, port, config)
 
     Logger.info("Connecting fire brigade ... ")
-    launcher.connect(new FireBrigadeAgent)
+    launcher.connect(new FireBrigadeAgent().agent)
     Logger.info("success")
   }
 

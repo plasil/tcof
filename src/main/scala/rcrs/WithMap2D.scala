@@ -1,53 +1,61 @@
 package rcrs
 
 import mpmens.concerns.map2d.{Map2D, Node, Position}
-import rescuecore2.standard.entities.{Area, Edge}
+import rescuecore2.standard.entities.{Area, Edge, StandardEntity}
 import rescuecore2.worldmodel.EntityID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-trait WithMap2D {
-  this: ScalaAgent[_] =>
+trait WithMap2D extends {
+  this: ScalaAgent =>
 
-  protected val areaToNode = mutable.Map.empty[EntityID, Node]
-  protected val map = new Map2D
+  protected object map extends Map2D {
+    private val areaIdToNode = mutable.Map.empty[EntityID, Node]
+    private val nodeToArea = mutable.Map.empty[Node, StandardEntity]
 
-  // https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
-  private def getCentroid(edges: Iterable[Edge]) = {
-    var cxSum, cySum, aSum: Double = 0
+    def toNode(areaId: EntityID) = areaIdToNode(areaId)
+    def toArea(node: Node) = nodeToArea(node)
 
-    for (edge <- edges) {
-      val start = edge.getStart
-      val end = edge.getEnd
+    // https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
+    private def getCentroid(edges: Iterable[Edge]) = {
+      var cxSum, cySum, aSum: Double = 0
 
-      cxSum = cxSum + (start.getX + end.getX) * (start.getX * end.getY - end.getX * start.getY)
-      cySum = cxSum + (start.getY + end.getY) * (start.getX * end.getY - end.getX * start.getY)
-      aSum = aSum + (start.getX * end.getY - end.getX * start.getY)
-    }
+      for (edge <- edges) {
+        val start = edge.getStart
+        val end = edge.getEnd
 
-    val a = aSum / 2
-    val cx = cxSum / (6 * a)
-    val cy = cySum / (6 * a)
-
-    Position(cx, cy)
-  }
-
-  protected def populateMap(): Unit = {
-    for (entity <- model.asScala) {
-      entity match {
-        case area: Area =>
-          val node = map.addNode(getCentroid(area.getEdges asScala))
-          areaToNode += (area.getID -> node)
+        cxSum = cxSum + (start.getX + end.getX) * (start.getX * end.getY - end.getX * start.getY)
+        cySum = cySum + (start.getY + end.getY) * (start.getX * end.getY - end.getX * start.getY)
+        aSum = aSum + (start.getX * end.getY - end.getX * start.getY)
       }
+
+      val a = aSum / 2
+      val cx = cxSum / (6 * a)
+      val cy = cySum / (6 * a)
+
+      Position(cx, cy)
     }
 
-    for (entity <- model.asScala) {
-      entity match {
-        case area: Area =>
-          for (neighborId <- area.getNeighbours asScala) {
-            map.addDirectedEdge(areaToNode(area.getID), areaToNode(neighborId))
-          }
+    def populate(): Unit = {
+      for (entity <- model.asScala) {
+        entity match {
+          case area: Area =>
+            val node = map.addNode(getCentroid(area.getEdges asScala))
+            map.areaIdToNode += (area.getID -> node)
+            map.nodeToArea += (node -> area)
+          case _ =>
+        }
+      }
+
+      for (entity <- model.asScala) {
+        entity match {
+          case area: Area =>
+            for (neighborId <- area.getNeighbours asScala) {
+              map.addDirectedEdge(map.areaIdToNode(area.getID), map.areaIdToNode(neighborId))
+            }
+          case _ =>
+        }
       }
     }
   }
