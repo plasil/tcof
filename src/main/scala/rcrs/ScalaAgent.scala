@@ -5,20 +5,25 @@ import java.util.{Collection, EnumSet}
 import mpmens.concerns.map2d.Node
 import rescuecore2.messages.Command
 import rescuecore2.standard.components.StandardAgent
-import rescuecore2.standard.entities.{StandardEntity, StandardEntityURN}
+import rescuecore2.standard.entities.{Area, Human, StandardEntity, StandardEntityURN}
 import rescuecore2.worldmodel.ChangeSet
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
-abstract class ScalaAgent extends WithMap2D {
+abstract class ScalaAgent extends IScalaAgent with WithMap2D {
   sagent =>
 
   type AgentEntityType <: StandardEntity
 
   protected def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit
-  protected def postConnect(): Unit
   protected def getRequestedEntityURNs: List[StandardEntityURN]
+
+  protected def currentAreaId = me match {
+    case area: Area => area.getID
+    case human: Human => human.getPosition
+    case _ => null
+  }
 
   protected def config = agent.delegateConfig
   protected def model = agent.delegateModel
@@ -36,7 +41,9 @@ abstract class ScalaAgent extends WithMap2D {
 
     override protected def postConnect() {
       super.postConnect()
+
       ignoreAgentCommandsUntil = config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)
+
       sagent.postConnect()
     }
 
@@ -50,4 +57,5 @@ abstract class ScalaAgent extends WithMap2D {
   }
 
   val agent = new Agent
+
 }

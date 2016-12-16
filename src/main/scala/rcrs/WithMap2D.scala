@@ -1,47 +1,74 @@
 package rcrs
 
-import mpmens.concerns.map2d.{Map2D, Node, Position}
-import rescuecore2.standard.entities.{Area, Edge, StandardEntity}
+import mpmens.concerns.map2d.{Node, Position, Map2D => Map2DConcern}
+import rescuecore2.config.Config
+import rescuecore2.standard.entities.{Area, StandardEntity, StandardWorldModel}
 import rescuecore2.worldmodel.EntityID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-trait WithMap2D extends {
+private object Map2D {
+  private var initialized = false
+
+  val lineOfSight = mutable.Map.empty[EntityID, Set[EntityID]]
+
+  def initialize(config: Config, model: StandardWorldModel): Unit = {
+    if (!initialized) {
+      val modelIterable = model.asScala
+
+      val entityCount = modelIterable.size
+      var entityIndex = 0
+
+      println("Computation of lines of sight...")
+      for (entity <- modelIterable) {
+        entity match {
+          case area: Area =>
+            val los = new LineOfSight(config, model)
+            val visibleEntities = los.getVisibleEntities(Position(area.getX, area.getY)).asScala.collect{ case visibleArea: Area => visibleArea.getID }.toSet
+            lineOfSight += (area.getID -> visibleEntities)
+          case _ =>
+        }
+
+        entityIndex = entityIndex + 1
+
+        if (entityIndex % 100 == 0) {
+          println(s"  $entityIndex / $entityCount")
+        }
+      }
+
+      println(s"  finished")
+
+      initialized = true
+    }
+  }
+}
+
+trait WithMap2D extends IScalaAgent {
   this: ScalaAgent =>
 
-  protected object map extends Map2D {
-    private val areaIdToNode = mutable.Map.empty[EntityID, Node]
-    private val nodeToArea = mutable.Map.empty[Node, StandardEntity]
+  override protected def postConnect(): Unit = {
+    super.postConnect()
+
+    map.populate()
+  }
+
+  protected object map extends Map2DConcern {
+    val areaIdToNode = mutable.Map.empty[EntityID, Node]
+    val nodeToArea = mutable.Map.empty[Node, StandardEntity]
 
     def toNode(areaId: EntityID) = areaIdToNode(areaId)
     def toArea(node: Node) = nodeToArea(node)
 
-    // https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
-    private def getCentroid(edges: Iterable[Edge]) = {
-      var cxSum, cySum, aSum: Double = 0
-
-      for (edge <- edges) {
-        val start = edge.getStart
-        val end = edge.getEnd
-
-        cxSum = cxSum + (start.getX + end.getX) * (start.getX * end.getY - end.getX * start.getY)
-        cySum = cySum + (start.getY + end.getY) * (start.getX * end.getY - end.getX * start.getY)
-        aSum = aSum + (start.getX * end.getY - end.getX * start.getY)
-      }
-
-      val a = aSum / 2
-      val cx = cxSum / (6 * a)
-      val cy = cySum / (6 * a)
-
-      Position(cx, cy)
-    }
+    def currentNode = areaIdToNode(currentAreaId)
 
     def populate(): Unit = {
+      Map2D.initialize(config, model)
+
       for (entity <- model.asScala) {
         entity match {
           case area: Area =>
-            val node = map.addNode(getCentroid(area.getEdges asScala))
+            val node = map.addNode(Position(area.getX, area.getY))
             map.areaIdToNode += (area.getID -> node)
             map.nodeToArea += (node -> area)
           case _ =>
@@ -58,5 +85,8 @@ trait WithMap2D extends {
         }
       }
     }
+
+    def getExplorePath(source: Node, lt: Position, rb: Position): List[Node] =
+      getExplorePath(source, lt, rb, node => Map2D.lineOfSight(toArea(node).getID).map(toNode(_)))
   }
 }

@@ -25,6 +25,7 @@ object Main {
 
     Logger.info("Connecting fire brigade ... ")
     launcher.connect(new FireBrigadeAgent().agent)
+    launcher.connect(new CentralAgent().agent)
     Logger.info("success")
   }
 
