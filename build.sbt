@@ -19,3 +19,5 @@ libraryDependencies ++= Seq(
   "org.uncommons.maths" % "uncommons-maths" % "1.2.2a",
   "trove" % "trove" % "1.0.2"
 )
+
+cleanFiles += (baseDirectory(_ / "precomputed.data")).value

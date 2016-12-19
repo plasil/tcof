@@ -1,5 +1,7 @@
 package rcrs
 
+import java.io._
+
 import mpmens.concerns.map2d.{Node, Position, Map2D => Map2DConcern}
 import rescuecore2.config.Config
 import rescuecore2.standard.entities.{Area, StandardEntity, StandardWorldModel}
@@ -11,9 +13,28 @@ import scala.collection.mutable
 private object Map2D {
   private var initialized = false
 
-  val lineOfSight = mutable.Map.empty[EntityID, Set[EntityID]]
+  var lineOfSight = mutable.Map.empty[EntityID, Set[EntityID]]
 
   def initialize(config: Config, model: StandardWorldModel): Unit = {
+    val PrecomputeFileName = "precompute.data"
+
+    if (!initialized) {
+      // try to load map from file
+      var input: ObjectInputStream = null
+      try {
+        input = new ObjectInputStream(new FileInputStream(PrecomputeFileName))
+        lineOfSight = loadLineOfSight(input)
+        println(s"Loaded precomputed data from \'${PrecomputeFileName}\'")
+        initialized = true
+      } catch {
+        case e: FileNotFoundException => println(s"File with precomputed data \'${PrecomputeFileName}\' not found")
+      } finally {
+        if (input != null) {
+          input.close
+        }
+      }
+    }
+
     if (!initialized) {
       val modelIterable = model.asScala
 
@@ -37,10 +58,36 @@ private object Map2D {
         }
       }
 
-      println(s"  finished")
+      // try to save map to file
+      var output: ObjectOutputStream = null
+      try {
+        val output = new ObjectOutputStream(new FileOutputStream(PrecomputeFileName))
+        saveLineOfSight(output)
+        println(s"Saved precomputed data to \'${PrecomputeFileName}\'")
+      } finally {
+        if (output != null) {
+          output.close
+        }
+      }
 
+      println(s"  finished")
       initialized = true
     }
+  }
+
+  private def loadLineOfSight(objectInputStream: ObjectInputStream): mutable.Map[EntityID, Set[EntityID]] = {
+    val o = objectInputStream.readObject
+    val loadedMap = o.asInstanceOf[mutable.Map[Int, Set[Int]]]
+
+    // transforms Map[Int, Set[Int]] to Map[EntityID, Set[EntityID]]
+    return loadedMap.map{case (key: Int, value: Set[Int]) => (new EntityID(key), value.map(valueID => new EntityID(valueID)))}
+  }
+
+  private def saveLineOfSight(objectOutputStream: ObjectOutputStream): Unit = {
+    // transforms Map[EntityID, Set[EntityID]] to Map[Int, Set[Int]]
+    val mapToSave = lineOfSight.map{case (key: EntityID, value: Set[EntityID]) => (key.getValue, value.map(valueID => valueID.getValue))}
+
+    objectOutputStream.writeObject(mapToSave)
   }
 }
 
