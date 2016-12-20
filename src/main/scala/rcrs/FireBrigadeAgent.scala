@@ -17,9 +17,7 @@ class FireBrigadeAgent extends ScalaAgent {
   private var maxDistance: Int = _
   private var maxPower: Int = _
 
-  private var path: List[Node] = _
-  private var previousNode: Node = _
-  private var freshPath = true
+  private var path: List[Node] = null
 
   override protected def postConnect() {
     super.postConnect()
@@ -30,38 +28,30 @@ class FireBrigadeAgent extends ScalaAgent {
 
     Logger.info(s"Fire brigade agent connected: max extinguish distance = $maxDistance, max power = $maxPower, max tank = $maxWater")
 
-    path = map.getExplorePath(map.currentNode, Position(250000, 0), Position(500000, 150000))
   }
 
   override def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
+    Logger.info(s"FireBrigadeAgent: Think called at time $time")
+
     if (time < ignoreAgentCommandsUntil) {
 
     } else {
-//      val ffNode = map.currentNode
-//      val hydrantNode = map.toNode(new EntityID(32781))
-//      val pathOpt = map.getPath(ffNode, hydrantNode)
 
-      if (!freshPath) {
+      if (path == null) {
+        Logger.info("Computing path")
+        path = map.getExplorePath(map.currentNode, Position(250000, 0), Position(500000, 150000))
+        Logger.info("Path done")
+        sendMove(time, path)
+      } else {
         val currentNode = map.currentNode
         val currentNodeIdx = path.indexOf(currentNode)
 
-        val pos = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y)}.toList
-
-        val traveledPath = previousNode :: path.slice(0, currentNodeIdx + 1)
-
-        println("Hist pos: " + pos)
-        println("Path pos: " + traveledPath.map(_.center))
-
-        val traveledDistance = traveledPath.zip(traveledPath.tail).map(x => x._1.center.distanceTo(x._2.center)).sum
-        println(s"Traveled [$currentNodeIdx] $traveledDistance")
+        // val pos = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y)}.toList
 
         path = path.slice(currentNodeIdx + 1, path.size)
+
+        sendMove(time, path)
       }
-
-
-      sendMove(time, path)
-      freshPath = false
-      previousNode = map.currentNode
     }
   }
 

@@ -15,7 +15,7 @@ class CentralAgent extends ScalaAgent {
   }
 
   override def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
-    Logger.info(s"Think called at time $time")
+    Logger.info(s"CentralAgent: Think called at time $time")
 
 
   }
