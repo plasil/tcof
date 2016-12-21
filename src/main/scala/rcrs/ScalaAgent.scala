@@ -2,7 +2,6 @@ package rcrs
 
 import java.util.{Collection, EnumSet}
 
-import mpmens.concerns.map2d.Node
 import rescuecore2.messages.Command
 import rescuecore2.standard.components.StandardAgent
 import rescuecore2.standard.entities.{Area, Human, StandardEntity, StandardEntityURN}
@@ -29,8 +28,8 @@ abstract class ScalaAgent extends IScalaAgent with WithMap2D {
   protected def model = agent.delegateModel
   protected def me = agent.delegateMe
   protected def location = agent.delegateLocation
-  protected def sendMove(time: Int, path: List[Node]) = agent.delegateSendMove(time, path)
-  protected def sendMove(time: Int, path: List[Node], destX: Int, destY: Int) = agent.delegateSendMove(time, path, destX, destY)
+  protected def sendMove(time: Int, path: List[map.Node]) = agent.delegateSendMove(time, path)
+  protected def sendMove(time: Int, path: List[map.Node], destX: Int, destY: Int) = agent.delegateSendMove(time, path, destX, destY)
 
   protected var ignoreAgentCommandsUntil: Int = _
 
@@ -52,8 +51,8 @@ abstract class ScalaAgent extends IScalaAgent with WithMap2D {
     def delegateMe = me
     def delegateLocation = location
 
-    def delegateSendMove(time: Int, path: List[Node]) = sendMove(time, ListBuffer(path.map(map.toArea(_).getID): _*).asJava)
-    def delegateSendMove(time: Int, path: List[Node], destX: Int, destY: Int) = sendMove(time, ListBuffer(path.map(map.toArea(_).getID): _*).asJava, destX, destY)
+    def delegateSendMove(time: Int, path: List[map.Node]) = sendMove(time, ListBuffer(path.map(map.toArea(_).getID): _*).asJava)
+    def delegateSendMove(time: Int, path: List[map.Node], destX: Int, destY: Int) = sendMove(time, ListBuffer(path.map(map.toArea(_).getID): _*).asJava, destX, destY)
   }
 
   val agent = new Agent

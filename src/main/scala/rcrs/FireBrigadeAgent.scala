@@ -1,6 +1,5 @@
 package rcrs
 
-import mpmens.concerns.map2d.{Node, Position}
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
 import rescuecore2.standard.entities.{FireBrigade, StandardEntityURN}
@@ -21,7 +20,7 @@ class FireBrigadeAgent extends ScalaAgent {
 
   private var explorationPath: map.AreaExploration = _
 
-  private val pathSoFar = mutable.ListBuffer.empty[Node]
+  private val pathSoFar = mutable.ListBuffer.empty[map.Node]
 
   override protected def postConnect() {
     super.postConnect()
@@ -32,11 +31,13 @@ class FireBrigadeAgent extends ScalaAgent {
 
     Logger.info(s"Fire brigade agent connected: max extinguish distance = $maxDistance, max power = $maxPower, max tank = $maxWater")
 
-    explorationPath = map.areaExploration(map.currentNode, Position(250000, 0), Position(500000, 150000))
+    val toExplore = map.nodes.filter(node => node.center.x >= 250000 && node.center.y >= 0 && node.center.x < 500000 && node.center.y <= 150000)
+
+    explorationPath = map.areaExploration(map.currentNode, toExplore.toSet)
   }
 
   val assumeLen = 10
-  var path: List[Node] = null
+  var path: List[map.Node] = null
 
   override def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
     Logger.info(s"FireBrigadeAgent: Think called at time $time")

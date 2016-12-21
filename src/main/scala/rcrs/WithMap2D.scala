@@ -2,7 +2,7 @@ package rcrs
 
 import java.io._
 
-import mpmens.concerns.map2d.{Node, Position, Map2D => Map2DConcern}
+import mpmens.concerns.map2d.{Position, Map2D => Map2DTrait}
 import rescuecore2.config.Config
 import rescuecore2.standard.entities.{Area, StandardEntity, StandardWorldModel}
 import rescuecore2.worldmodel.EntityID
@@ -107,7 +107,7 @@ trait WithMap2D extends IScalaAgent {
     map.populate()
   }
 
-  protected object map extends Map2DConcern {
+  protected object map extends Map2DTrait {
     val areaIdToNode = mutable.Map.empty[EntityID, Node]
     val nodeToArea = mutable.Map.empty[Node, StandardEntity]
 
@@ -134,9 +134,21 @@ trait WithMap2D extends IScalaAgent {
       for (entity <- model.asScala) {
         entity match {
           case area: Area =>
+            val areaNode = map.areaIdToNode(area.getID)
+            val areaPosition = areaNode.center
+
             for (neighborId <- area.getNeighbours asScala) {
-              map.addDirectedEdge(map.areaIdToNode(area.getID), map.areaIdToNode(neighborId))
+              val neighbor = model.getEntity(neighborId)
+              neighbor match {
+                case neighborArea: Area =>
+                  val neighborNode = map.areaIdToNode(neighborId)
+                  val neighborPosition = neighborNode.center
+                  map.addDirectedEdge(areaNode, neighborNode, areaPosition.distanceTo(neighborPosition))
+
+                case _ =>
+              }
             }
+
           case _ =>
         }
       }
@@ -147,7 +159,7 @@ trait WithMap2D extends IScalaAgent {
     def shortestPath(source: Node): ShortestPath =
       new ShortestPath(source)
 
-    def areaExploration(origin: Node, leftBottom: Position, rightTop: Position): AreaExploration =
-      new AreaExploration(origin, leftBottom, rightTop, lineOfSight)
+    def areaExploration(origin: Node, toExplore: Set[Node]): AreaExploration =
+      new AreaExploration(origin, toExplore, lineOfSight)
   }
 }
