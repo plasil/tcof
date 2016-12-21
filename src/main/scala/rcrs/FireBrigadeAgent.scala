@@ -19,7 +19,7 @@ class FireBrigadeAgent extends ScalaAgent {
   private var maxDistance: Int = _
   private var maxPower: Int = _
 
-  private var explorationPath = map.areaExploration(Position(250000, 0), Position(500000, 150000))
+  private var explorationPath: map.AreaExploration = _
 
   private val pathSoFar = mutable.ListBuffer.empty[Node]
 
@@ -32,27 +32,36 @@ class FireBrigadeAgent extends ScalaAgent {
 
     Logger.info(s"Fire brigade agent connected: max extinguish distance = $maxDistance, max power = $maxPower, max tank = $maxWater")
 
+    explorationPath = map.areaExploration(map.currentNode, Position(250000, 0), Position(500000, 150000))
   }
+
+  val assumeLen = 10
+  var path: List[Node] = null
 
   override def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
     Logger.info(s"FireBrigadeAgent: Think called at time $time")
 
     if (time < ignoreAgentCommandsUntil) {
-      pathSoFar.clear()
-      pathSoFar.append(map.currentNode)
     } else {
-      val path = explorationPath.explorationPath(pathSoFar.toList)
-      Logger.info(path.map(map.toArea).toString)
+      if (path != null) {
+        val currentNode = map.currentNode
+        val currentNodeIdx = path.indexOf(currentNode)
+        val walkedPath = path.slice(0, currentNodeIdx + 1)
 
-//        val currentNode = map.currentNode
-//        val currentNodeIdx = path.indexOf(currentNode)
+        Logger.info("Walked path: " + walkedPath.map(map.toArea).toString)
 
-        // val pos = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y)}.toList
+        explorationPath.walked(walkedPath)
+      }
 
-//        path = path.slice(currentNodeIdx + 1, path.size)
+      path = explorationPath.explorationPath
+      Logger.info("Path to go: " + path.map(map.toArea).toString)
 
-//        sendMove(time, path)
-//      }
+      val assumePath = path.slice(0,assumeLen)
+      Logger.info("Assuming segment: " + path.map(map.toArea).toString)
+
+      explorationPath.assume(path.slice(0,assumeLen))
+
+      sendMove(time, path)
     }
   }
 

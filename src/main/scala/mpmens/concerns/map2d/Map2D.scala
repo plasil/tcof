@@ -87,35 +87,40 @@ class Map2D {
     * @param rightTop Top right coordinate of the rectangle
     * @param nodesInView A function that returns nodes that can be seen from a node
     */
-  class AreaExploration(val leftBottom: Position, val rightTop: Position, val nodesInView: Node => Iterable[Node] = List(_)) {
+  class AreaExploration(private val origin: Node, val leftBottom: Position, val rightTop: Position, val nodesInView: Node => Iterable[Node] = List(_)) {
     private val exploreMaxCount = 3
-    private val backtrackingMaxCount = 1000
+    private val backtrackingMaxCount = 10000
+
+    private var assumePathWithOrigin: List[Node] = List(origin)
+
+    private var walkedPathWithOrigin: List[Node] = List(origin)
 
     private var currentTask: ComputationTask = null
 
-    private class ComputationTask(val assumePathWithOrigin: List[Node]) {
-      val exploreOrigin = assumePathWithOrigin.last
+    private class ComputationTask() {
+      val localAssumePathWithOrigin = assumePathWithOrigin
+      val exploreOrigin = localAssumePathWithOrigin.last
       val dij = new ShortestPath(exploreOrigin)
       val toExplore = dij.nodesByDistance.filter(node => node.center.x >= leftBottom.x && node.center.y >= leftBottom.y && node.center.x < rightTop.x && node.center.y <= rightTop.y)
 
       // Do a quick computation to have something to return now
-      var explorationPathWithOrigin: List[Node] = if (toExplore.isEmpty) assumePathWithOrigin else assumePathWithOrigin ++ dij.pathTo(toExplore.head).get
+      var explorationPathWithOrigin: List[Node] = if (toExplore.isEmpty) localAssumePathWithOrigin else localAssumePathWithOrigin ++ dij.pathTo(toExplore.head).get
 
       var explorationPathLength: Double = _
 
       var isInterrupted = false
 
       val future = Future({
-        val assumePathDistance = assumePathWithOrigin.zip(assumePathWithOrigin.tail).map { case (start, end) => start.center.distanceTo(end.center) }.sum
+        val assumePathDistance = localAssumePathWithOrigin.zip(localAssumePathWithOrigin.tail).map { case (start, end) => start.center.distanceTo(end.center) }.sum
 
         val adjustedToExplore = mutable.Set.empty[Node] ++ toExplore
-        for (node <- assumePathWithOrigin) {
+        for (node <- localAssumePathWithOrigin) {
           adjustedToExplore --= nodesInView(node)
         }
 
         explorationPathLength = Double.MaxValue
 
-        doComputation(assumePathWithOrigin.reverse.tail, assumePathDistance, "", exploreOrigin, null, adjustedToExplore.toSet, backtrackingMaxCount)
+        doComputation(localAssumePathWithOrigin.reverse.tail, assumePathDistance, "", exploreOrigin, null, adjustedToExplore.toSet, backtrackingMaxCount)
       })
 
       def interrupt(): Unit = {
@@ -141,11 +146,14 @@ class Map2D {
           val exploreMaxCountWithBacktrackingLimit = if (backtrackingLimit == 0) 1 else exploreMaxCount
 
           if (toExploreVar.isEmpty) {
-            println("+ " + signatureVar)
+            // println("+ " + signatureVar)
             pathSoFarReversedVar = currentNodeVar :: pathSoFarReversedVar
 
-            explorationPathWithOrigin = pathSoFarReversedVar.reverse
-            explorationPathLength = distanceSoFarVar
+            val resultingPath = pathSoFarReversedVar.reverse
+            if (resultingPath.startsWith(assumePathWithOrigin)) {
+              explorationPathWithOrigin = resultingPath
+              explorationPathLength = distanceSoFarVar
+            }
             straightPath = false
 
           } else {
@@ -225,20 +233,44 @@ class Map2D {
       }
     }
 
-    def explorationPath(assumePathWithOrigin: List[Node]): List[Node] = {
+    def assume(path: List[Node]): Unit = {
+      val pathWithOrigin = walkedPathWithOrigin ++ path
+      require(pathWithOrigin.startsWith(assumePathWithOrigin))
 
-      if (currentTask != null && currentTask.explorationPathWithOrigin.startsWith(assumePathWithOrigin)) {
-        currentTask.explorationPathWithOrigin.tail
+      assumePathWithOrigin = pathWithOrigin
+    }
 
-      } else {
+    def walked(path: List[Node]): Unit = {
+      val pathWithOrigin = walkedPathWithOrigin ++ path
+      require(assumePathWithOrigin.startsWith(pathWithOrigin))
+
+      walkedPathWithOrigin = pathWithOrigin
+    }
+
+    def explorationPath: List[Node] = {
+
+      var result: List[Node] = null
+
+      if (currentTask != null) {
+        val currentExplorationPath = currentTask.explorationPathWithOrigin
+
+        if (currentExplorationPath.startsWith(assumePathWithOrigin)) {
+          result = currentExplorationPath.drop(walkedPathWithOrigin.size)
+        }
+      }
+
+      if (result == null) {
         if (currentTask != null) {
           currentTask.interrupt()
         }
 
-        currentTask = new ComputationTask(assumePathWithOrigin)
+        currentTask = new ComputationTask
 
-        currentTask.explorationPathWithOrigin.tail
+        result = currentTask.explorationPathWithOrigin.tail
       }
+
+      result
     }
+
   }
 }

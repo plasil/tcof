@@ -159,7 +159,7 @@ trait WithMap2D extends IScalaAgent {
     def shortestPath(source: Node): ShortestPath =
       new ShortestPath(source)
 
-    def areaExploration(leftBottom: Position, rightTop: Position): AreaExploration =
-      new AreaExploration(leftBottom, rightTop, lineOfSight)
+    def areaExploration(origin: Node, leftBottom: Position, rightTop: Position): AreaExploration =
+      new AreaExploration(origin, leftBottom, rightTop, lineOfSight)
   }
 }
