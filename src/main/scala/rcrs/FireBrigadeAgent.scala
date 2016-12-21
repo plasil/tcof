@@ -6,6 +6,8 @@ import rescuecore2.messages.Command
 import rescuecore2.standard.entities.{FireBrigade, StandardEntityURN}
 import rescuecore2.worldmodel.ChangeSet
 
+import scala.collection.mutable
+
 class FireBrigadeAgent extends ScalaAgent {
   override type AgentEntityType = FireBrigade
 
@@ -17,7 +19,9 @@ class FireBrigadeAgent extends ScalaAgent {
   private var maxDistance: Int = _
   private var maxPower: Int = _
 
-  private var path: List[Node] = null
+  private var explorationPath = map.areaExploration(Position(250000, 0), Position(500000, 150000))
+
+  private val pathSoFar = mutable.ListBuffer.empty[Node]
 
   override protected def postConnect() {
     super.postConnect()
@@ -34,24 +38,21 @@ class FireBrigadeAgent extends ScalaAgent {
     Logger.info(s"FireBrigadeAgent: Think called at time $time")
 
     if (time < ignoreAgentCommandsUntil) {
-
+      pathSoFar.clear()
+      pathSoFar.append(map.currentNode)
     } else {
+      val path = explorationPath.explorationPath(pathSoFar.toList)
+      Logger.info(path.map(map.toArea).toString)
 
-      if (path == null) {
-        Logger.info("Computing path")
-        path = map.getExplorePath(map.currentNode, Position(250000, 0), Position(500000, 150000))
-        Logger.info("Path done")
-        sendMove(time, path)
-      } else {
-        val currentNode = map.currentNode
-        val currentNodeIdx = path.indexOf(currentNode)
+//        val currentNode = map.currentNode
+//        val currentNodeIdx = path.indexOf(currentNode)
 
         // val pos = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y)}.toList
 
-        path = path.slice(currentNodeIdx + 1, path.size)
+//        path = path.slice(currentNodeIdx + 1, path.size)
 
-        sendMove(time, path)
-      }
+//        sendMove(time, path)
+//      }
     }
   }
 

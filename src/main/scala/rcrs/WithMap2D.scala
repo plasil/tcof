@@ -144,8 +144,10 @@ trait WithMap2D extends IScalaAgent {
       lineOfSight ++= Map2D.lineOfSight.map { case (area, areasInSight) => ( toNode(area) -> areasInSight.map(toNode)) }
     }
 
-    def getExplorePath(source: Node, leftBottom: Position, rightTop: Position): List[Node] = {
-      getExplorePath(source, leftBottom, rightTop, map.lineOfSight)
-    }
+    def shortestPath(source: Node): ShortestPath =
+      new ShortestPath(source)
+
+    def areaExploration(leftBottom: Position, rightTop: Position): AreaExploration =
+      new AreaExploration(leftBottom, rightTop, lineOfSight)
   }
 }
