@@ -96,6 +96,18 @@ private object Map2D {
       .map(_.asInstanceOf[Area])
       .headOption
   }
+
+  /**
+    * Removes consecutive duplicates.
+    *
+    * @param l list to be iterated
+    * @tparam A type of list
+    * @return new list with removed consecutive duplicates
+    */
+  def compress[A](l: List[A]):List[A] = l.foldRight(List[A]()) {
+    case (e, ls) if (ls.isEmpty || ls.head != e) => e::ls
+    case (e, ls) => ls
+  }
 }
 
 trait WithMap2D extends IScalaAgent {
