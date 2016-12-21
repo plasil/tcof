@@ -16,21 +16,21 @@ private object Map2D {
   var lineOfSight = mutable.Map.empty[EntityID, Set[EntityID]]
 
   def initialize(config: Config, model: StandardWorldModel): Unit = {
-    val PrecomputeFileName = "precompute.data"
+    val precomputeFileName = "precompute.data"
 
     if (!initialized) {
       // try to load map from file
       var input: ObjectInputStream = null
       try {
-        input = new ObjectInputStream(new FileInputStream(PrecomputeFileName))
+        input = new ObjectInputStream(new FileInputStream(precomputeFileName))
         lineOfSight = loadLineOfSight(input)
-        println(s"Loaded precomputed data from \'${PrecomputeFileName}\'")
+        println(s"Loaded precomputed data from '${precomputeFileName}'")
         initialized = true
       } catch {
-        case e: FileNotFoundException => println(s"File with precomputed data \'${PrecomputeFileName}\' not found")
+        case e: FileNotFoundException => println(s"File with precomputed data '${precomputeFileName}' not found")
       } finally {
         if (input != null) {
-          input.close
+          input.close()
         }
       }
     }
@@ -61,9 +61,9 @@ private object Map2D {
       // try to save map to file
       var output: ObjectOutputStream = null
       try {
-        val output = new ObjectOutputStream(new FileOutputStream(PrecomputeFileName))
+        val output = new ObjectOutputStream(new FileOutputStream(precomputeFileName))
         saveLineOfSight(output)
-        println(s"Saved precomputed data to \'${PrecomputeFileName}\'")
+        println(s"Saved precomputed data to \'${precomputeFileName}\'")
       } finally {
         if (output != null) {
           output.close
@@ -116,6 +116,8 @@ trait WithMap2D extends IScalaAgent {
 
     def currentNode = areaIdToNode(currentAreaId)
 
+    val lineOfSight = mutable.Map.empty[Node, Set[Node]]
+
     def populate(): Unit = {
       Map2D.initialize(config, model)
 
@@ -138,9 +140,14 @@ trait WithMap2D extends IScalaAgent {
           case _ =>
         }
       }
+
+      lineOfSight ++= Map2D.lineOfSight.map { case (area, areasInSight) => ( toNode(area) -> areasInSight.map(toNode)) }
     }
 
-    def getExplorePath(source: Node, lt: Position, rb: Position): List[Node] =
-      getExplorePath(source, lt, rb, node => Map2D.lineOfSight(toArea(node).getID).map(toNode(_)))
+    def shortestPath(source: Node): ShortestPath =
+      new ShortestPath(source)
+
+    def areaExploration(leftBottom: Position, rightTop: Position): AreaExploration =
+      new AreaExploration(leftBottom, rightTop, lineOfSight)
   }
 }
