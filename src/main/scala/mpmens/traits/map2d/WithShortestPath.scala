@@ -1,4 +1,4 @@
-package mpmens.concerns.map2d
+package mpmens.traits.map2d
 
 import de.ummels.prioritymap.PriorityMap
 
@@ -17,6 +17,8 @@ trait WithShortestPath {
         epoch = epoch + 1
       }
     }
+
+    def apply(source: Node): ShortestPath = new ShortestPath(source)
   }
 
   class ShortestPath(val origin: Node) {

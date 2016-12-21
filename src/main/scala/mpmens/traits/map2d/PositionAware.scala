@@ -1,4 +1,4 @@
-package mpmens.concerns.map2d
+package mpmens.traits.map2d
 
 trait PositionAware {
   var position: Position

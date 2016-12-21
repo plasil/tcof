@@ -1,7 +1,7 @@
 package example
 
 import mpmens.Universe
-import mpmens.concerns.map2d.Position
+import mpmens.traits.map2d.Position
 
 object RescueScenario extends Universe {
 
@@ -16,7 +16,7 @@ object RescueScenario extends Universe {
     utility = ambulances.sum(100 - _.position.distanceTo(incident.position).round.toInt)
   }
 
-  systems {
+  system {
     val rescueTeams = ensembles("rescueTeams", components.withRole[Incident].map(new IncidentResponseTeam(_)))
 
     membership(

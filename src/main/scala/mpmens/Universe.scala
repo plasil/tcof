@@ -32,7 +32,7 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
 
   private var rootEnsembleInit: () => Unit = _
 
-  def systems(initFun: => Unit): Unit = {
+  def system(initFun: => Unit): Unit = {
     rootEnsembleInit = initFun _
   }
 

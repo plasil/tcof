@@ -1,14 +1,16 @@
 package rcrs
 
+import mpmens.traits.map2d.Map2DTrait
+import rcrs.traits.map2d.RCRSMapAdapterTrait
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
-import rescuecore2.standard.entities.{FireBrigade, StandardEntityURN}
+import rescuecore2.standard.entities.{StandardEntityURN, FireBrigade => FireBrigadeEntity}
 import rescuecore2.worldmodel.ChangeSet
 
 import scala.collection.mutable
 
-class FireBrigadeAgent extends ScalaAgent {
-  override type AgentEntityType = FireBrigade
+class FireBrigadeAgent extends ScalaAgent with Map2DTrait with RCRSMapAdapterTrait {
+  override type AgentEntityType = FireBrigadeEntity
 
   private val MAX_WATER_KEY = "fire.tank.maximum"
   private val MAX_DISTANCE_KEY = "fire.extinguish.max-distance"
@@ -33,15 +35,16 @@ class FireBrigadeAgent extends ScalaAgent {
 
     val toExplore = map.nodes.filter(node => node.center.x >= 250000 && node.center.y >= 0 && node.center.x < 500000 && node.center.y <= 150000)
 
-    explorationPath = map.areaExploration(map.currentNode, toExplore.toSet)
+    explorationPath = map.AreaExploration(map.currentNode, toExplore.toSet)
   }
 
   val assumeLen = 10
   var path: List[map.Node] = null
 
   override def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
-    Logger.info(s"FireBrigadeAgent: Think called at time $time")
-
+    Logger.info(s"FireBrigadeAgent: Think called at time $time. Position ${getPosition}")
+    super.think(time, changes, heard)
+/*
     if (time < ignoreAgentCommandsUntil) {
     } else {
       if (path != null) {
@@ -73,8 +76,9 @@ class FireBrigadeAgent extends ScalaAgent {
 
       explorationPath.assume(path.slice(0,assumeLen))
 
-      sendMove(time, path)
+      sendMove(time, map.toAreaID(path))
     }
+*/
   }
 
   override protected def getRequestedEntityURNs: List[StandardEntityURN] = List(StandardEntityURN.FIRE_BRIGADE)

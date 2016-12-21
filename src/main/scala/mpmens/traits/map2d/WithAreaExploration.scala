@@ -1,4 +1,4 @@
-package mpmens.concerns.map2d
+package mpmens.traits.map2d
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -7,13 +7,18 @@ import scala.concurrent.Future
 trait WithAreaExploration {
   this: Map2D =>
 
+  object AreaExploration {
+    def apply(origin: Node, toExplore: Set[Node], nodesInView: Node => Iterable[Node]): AreaExploration =
+      new AreaExploration(origin, toExplore, nodesInView)
+  }
+
   /**
     * Approximates optimal path starting at origin that ensures that all nodes within rectangle [leftBottom, rightTop] are seen (i.e.
     * an agent is within sight distance.
     * @param nodesToExplore List of nodes to be explored
     * @param nodesInView A function that returns nodes that can be seen from a node
     */
-  class AreaExploration(private val origin: Node, val nodesToExplore: Set[Node], val nodesInView: Node => Iterable[Node] = List(_)) {
+  class AreaExploration(private val origin: Node, val nodesToExplore: Set[Node], val nodesInView: Node => Iterable[Node]) {
     private val exploreMaxCount = 3
     private val backtrackingMaxCount = 10000
 

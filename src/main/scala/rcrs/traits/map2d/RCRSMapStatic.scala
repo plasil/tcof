@@ -1,16 +1,18 @@
-package rcrs
+package rcrs.traits.map2d
 
 import java.io._
 
-import mpmens.concerns.map2d.{Position, Map2D => Map2DTrait}
+import mpmens.traits.map2d.Position
+import rcrs.LineOfSight
 import rescuecore2.config.Config
-import rescuecore2.standard.entities.{Area, StandardEntity, StandardWorldModel}
+import rescuecore2.standard.entities.{Area, StandardWorldModel}
 import rescuecore2.worldmodel.EntityID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-private object Map2D {
+
+private object RCRSMapStatic {
   private var initialized = false
 
   var lineOfSight = mutable.Map.empty[EntityID, Set[EntityID]]
@@ -107,71 +109,5 @@ private object Map2D {
   def compress[A](l: List[A]):List[A] = l.foldRight(List[A]()) {
     case (e, ls) if (ls.isEmpty || ls.head != e) => e::ls
     case (e, ls) => ls
-  }
-}
-
-trait WithMap2D extends IScalaAgent {
-  this: ScalaAgent =>
-
-  override protected def postConnect(): Unit = {
-    super.postConnect()
-
-    map.populate()
-  }
-
-  protected object map extends Map2DTrait {
-    val areaIdToNode = mutable.Map.empty[EntityID, Node]
-    val nodeToArea = mutable.Map.empty[Node, StandardEntity]
-
-    def toNode(areaId: EntityID) = areaIdToNode(areaId)
-    def toArea(node: Node) = nodeToArea(node)
-
-    def currentNode = areaIdToNode(currentAreaId)
-
-    val lineOfSight = mutable.Map.empty[Node, Set[Node]]
-
-    def populate(): Unit = {
-      Map2D.initialize(config, model)
-
-      for (entity <- model.asScala) {
-        entity match {
-          case area: Area =>
-            val node = map.addNode(Position(area.getX, area.getY))
-            map.areaIdToNode += (area.getID -> node)
-            map.nodeToArea += (node -> area)
-          case _ =>
-        }
-      }
-
-      for (entity <- model.asScala) {
-        entity match {
-          case area: Area =>
-            val areaNode = map.areaIdToNode(area.getID)
-            val areaPosition = areaNode.center
-
-            for (neighborId <- area.getNeighbours asScala) {
-              val neighbor = model.getEntity(neighborId)
-              neighbor match {
-                case neighborArea: Area =>
-                  val neighborNode = map.areaIdToNode(neighborId)
-                  val neighborPosition = neighborNode.center
-                  map.addDirectedEdge(areaNode, neighborNode, areaPosition.distanceTo(neighborPosition))
-
-                case _ =>
-              }
-            }
-
-          case _ =>
-        }
-      }
-
-      lineOfSight ++= Map2D.lineOfSight.map { case (area, areasInSight) => ( toNode(area) -> areasInSight.map(toNode)) }
-    }
-
-    def shortestPath(source: Node): ShortestPath =
-      new ShortestPath(source)
-
-    def areaExploration(origin: Node, toExplore: Set[Node]): AreaExploration =
-      new AreaExploration(origin, toExplore, lineOfSight)
   }
 }

@@ -1,5 +1,4 @@
-package mpmens.concerns.map2d
-
+package mpmens.traits.map2d
 
 class Map2D extends WithShortestPath with WithAreaExploration {
   class Node private[map2d](val center: Position) {
