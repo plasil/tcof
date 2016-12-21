@@ -50,6 +50,17 @@ class FireBrigadeAgent extends ScalaAgent {
 
         Logger.info("Walked path: " + walkedPath.map(map.toArea).toString)
 
+        // real path from history:
+        // note - history of coordinates from getPositionHistory may skip some Area
+        // therefore it's not possible to simply remove the beginning of the path list
+        /*
+        val coords = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y)}.toList
+        val areasFromCoords = coords.map(p => Map2D.coordinatesToArea(p.x.asInstanceOf[Int], p.y.asInstanceOf[Int], this.model).get)
+        val areasWithoutDuplicates = Map2D.compress(areasFromCoords)
+        Logger.info("Real   path: " + areasFromCoords.toString)
+        Logger.info("Real (compressed) path: " + areasWithoutDuplicates.toString)
+        */
+
         explorationPath.walked(walkedPath)
       }
 
