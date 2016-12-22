@@ -55,6 +55,10 @@ abstract class ScalaAgent extends RCRSTrait {
   def location = rcrsAgent.delegateLocation
   def sendMove(time: Int, path: List[EntityID]) = rcrsAgent.delegateSendMove(time, path)
   def sendMove(time: Int, path: List[EntityID], destX: Int, destY: Int) = rcrsAgent.delegateSendMove(time, path, destX, destY)
+  def sendSubscribe(time: Int, channels: Int*) = rcrsAgent.delegateSendSubscribe(time, channels: _*)
+  def sendRest(time: Int) = rcrsAgent.delegateSendRest(time)
+  def sendSpeak(time: Int, channel: Int, data: Array[Byte]) = rcrsAgent.delegateSendSpeak(time, channel, data)
+  def sendExtinguish(time: Int, target: EntityID, water: Int) = rcrsAgent.delegateSendExtinguish(time, target, water)
 
   var ignoreAgentCommandsUntil: Int = _
 
@@ -75,9 +79,14 @@ abstract class ScalaAgent extends RCRSTrait {
     def delegateModel = model
     def delegateMe = me
     def delegateLocation = location
+    def delegateGetID = getID
 
     def delegateSendMove(time: Int, path: List[EntityID]) = sendMove(time, ListBuffer(path: _*).asJava)
     def delegateSendMove(time: Int, path: List[EntityID], destX: Int, destY: Int) = sendMove(time, ListBuffer(path: _*).asJava, destX, destY)
+    def delegateSendSubscribe(time: Int, channels: Int*) = sendSubscribe(time, channels: _*)
+    def delegateSendRest(time: Int) = sendRest(time)
+    def delegateSendSpeak(time: Int, channel: Int, data: Array[Byte]) = sendSpeak(time, channel, data)
+    def delegateSendExtinguish(time: Int, target: EntityID, water: Int) = sendExtinguish(time, target, water)
   }
 
   val rcrsAgent = new Agent
