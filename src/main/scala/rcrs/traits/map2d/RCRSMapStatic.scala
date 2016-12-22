@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 
-private object RCRSMapStatic {
+object RCRSMapStatic {
   private var initialized = false
 
   var lineOfSight = mutable.Map.empty[EntityID, Set[EntityID]]
@@ -109,5 +109,51 @@ private object RCRSMapStatic {
   def compress[A](l: List[A]):List[A] = l.foldRight(List[A]()) {
     case (e, ls) if (ls.isEmpty || ls.head != e) => e::ls
     case (e, ls) => ls
+  }
+
+  /**
+    * Returns index of last visited item in "path" when
+    * "hist" is the list of traversed nodes.
+    */
+  def indexOfBasedOnHist[T](path: Seq[T], hist: Seq[T]): Option[Int] = {
+    if (path.length == 0 || hist.length == 0) {
+      return None
+    }
+
+    if (path(0) == hist(0)) {
+
+      // same value - search tails
+      val res = indexOfBasedOnHist(path.tail, hist.tail)
+      res match {
+        case Some(n) => return Some(n + 1)
+        case None => return Some(0)
+      }
+    }
+
+    // skip current from path (history may miss some points)
+    val pathRes = indexOfBasedOnHist(path.tail, hist)
+
+    // hist may contain some point not planned - skip it
+    val histRes = indexOfBasedOnHist(path, hist.tail)
+
+    if (pathRes.isEmpty && histRes.isEmpty) {
+      return None
+    }
+
+    // at least one of the res1 or res2 is defined
+    pathRes match {
+      case Some(pathIndexFromRec) =>
+        // res1 defined - add +1 as we are moving in path
+        val pathNewResult = pathIndexFromRec + 1
+        histRes match {
+          case Some(histIndexFromRec) =>
+            val max = Math.max(pathNewResult, histIndexFromRec)
+            return Some(max)
+          case None =>
+            return Some(pathNewResult)
+        }
+      case None =>
+        return histRes
+    }
   }
 }

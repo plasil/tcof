@@ -17,7 +17,12 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-core" % "2.7",
   "org.apache.logging.log4j" % "log4j-1.2-api" % "2.7",
   "org.uncommons.maths" % "uncommons-maths" % "1.2.2a",
-  "trove" % "trove" % "1.0.2"
+  "trove" % "trove" % "1.0.2",
+  "org.scala-lang" % "scala-library" % "2.12.0",
+
+  // unit tests
+  "org.scalactic" %% "scalactic" % "3.0.1",
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
 cleanFiles += (baseDirectory(_ / "precomputed.data")).value
