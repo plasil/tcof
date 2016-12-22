@@ -53,6 +53,7 @@ abstract class ScalaAgent extends RCRSTrait {
   def model = rcrsAgent.delegateModel
   def me = rcrsAgent.delegateMe
   def location = rcrsAgent.delegateLocation
+  def getID = rcrsAgent.delegateGetID
   def sendMove(time: Int, path: List[EntityID]) = rcrsAgent.delegateSendMove(time, path)
   def sendMove(time: Int, path: List[EntityID], destX: Int, destY: Int) = rcrsAgent.delegateSendMove(time, path, destX, destY)
   def sendSubscribe(time: Int, channels: Int*) = rcrsAgent.delegateSendSubscribe(time, channels: _*)
