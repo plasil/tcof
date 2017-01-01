@@ -1,8 +1,7 @@
 package rcrs
 
 import mpmens.Universe
-import mpmens.traits.map2d.{Map2DTrait, Position}
-import rcrs.traits.map2d.RCRSMapAdapterTrait
+import mpmens.traits.map2d.Map2DTrait
 import rcrs.traits.time.CurrentTimeTrait
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
@@ -12,24 +11,24 @@ import rescuecore2.worldmodel.ChangeSet
 class CentralAgent extends ScalaAgent {
   override type AgentEntityType = Building
 
-  object RescueScenario extends Universe with RCRSAgentTrait with Map2DTrait with RCRSMapAdapterTrait with CurrentTimeTrait {
+  object RescueScenario extends Universe with RCRSAgentTrait with Map2DTrait with CurrentTimeTrait {
 
     class ExplorationTeams(val zone: MapZone) extends Ensemble(s"ExplorationTeam for $zone") {
       val fireBrigades = role("fireBrigades", components.withRole[FireBrigade])
-      val ambulanceTeams = role("ambulanceTeams", components.withRole[AmbulanceTeam])
-      val policeForces = role("policeForces", components.withRole[PoliceForce])
+      val ambulances = role("ambulanceTeams", components.withRole[AmbulanceTeam])
+      val police = role("policeForces", components.withRole[PoliceForce])
 
       membership(
         fireBrigades.cardinality >= 1 &&
-        ambulanceTeams.cardinality >= 1 &&
-        policeForces.cardinality >= 1
+        ambulances.cardinality >= 1 &&
+        police.cardinality >= 1
       )
 
       def proximityToZoneCenter(unit: MobileUnit) = 100 - (unit.position.distanceTo(zone.center) / 10000).round.toInt
 
-      utility = fireBrigades.sum(unit => proximityToZoneCenter(unit)) +
-        ambulanceTeams.sum(unit => proximityToZoneCenter(unit)) +
-        policeForces.sum(unit => proximityToZoneCenter(unit))
+      utility = fireBrigades.sum(proximityToZoneCenter(_)) +
+        ambulances.sum(proximityToZoneCenter(_)) +
+        police.sum(proximityToZoneCenter(_))
     }
 
     system {
@@ -41,9 +40,9 @@ class CentralAgent extends ScalaAgent {
       val explorationTeams = ensembles("explorationTeams", mapZones.map(new ExplorationTeams(_)))
 
       membership(
-        explorationTeams.map(team => team.fireBrigades).allDisjoint &&
-        explorationTeams.map(team => team.ambulanceTeams).allDisjoint &&
-        explorationTeams.map(team => team.policeForces).allDisjoint
+        explorationTeams.map(_.fireBrigades).allDisjoint &&
+        explorationTeams.map(_.ambulances).allDisjoint &&
+        explorationTeams.map(_.police).allDisjoint
       )
     }
   }
@@ -59,6 +58,7 @@ class CentralAgent extends ScalaAgent {
     Logger.info(s"CentralAgent: Think called at time $time")
     super.think(time, changes, heard)
 
+/*
     RescueScenario.rcrsTraitStep(time: Int, changes: ChangeSet, heard: List[Command])
 
 
@@ -83,7 +83,7 @@ class CentralAgent extends ScalaAgent {
     while (RescueScenario.solve()) {
       println(RescueScenario.toString)
     }
-
+*/
   }
 
   override protected def getRequestedEntityURNs: List[StandardEntityURN] = List(StandardEntityURN.FIRE_STATION, StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE)
