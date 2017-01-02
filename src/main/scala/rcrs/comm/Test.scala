@@ -1,6 +1,5 @@
 package rcrs.comm
 
-import rcrs.AgentType
 import rescuecore2.worldmodel.EntityID
 import scodec.bits.BitVector
 
@@ -12,13 +11,13 @@ object Test {
     val msg1 = Message.decode(bytes1)
     println(msg1)
 
-    val bytes2 = Message.encode(Hello(AgentType.POLICE_FORCE))
+    val bytes2 = Message.encode(RegRequest())
     println(BitVector(bytes2))
 
     val msg2 = Message.decode(bytes2)
     println(msg2)
 
-    val bytes3 = Message.encode(HelloAck(List(new EntityID(12), new EntityID(24))))
+    val bytes3 = Message.encode(RegResponse(new EntityID(12),5))
     println(BitVector(bytes3))
 
     val msg3 = Message.decode(bytes3)

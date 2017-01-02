@@ -3,6 +3,7 @@ package rcrs.comm
 import scodec.Attempt.{Failure, Successful}
 import scodec._
 import scodec.bits._
+import scodec.codecs._
 
 import scala.reflect.ClassTag
 
@@ -14,14 +15,16 @@ object Message {
   object MessageType extends Enumeration {
     type MessageType = Value
 
-    val HELLO = Value(0)
-    val HELLO_ACK = Value(1)
+    val REG_REQUEST = Value(0)
+    val REG_RESPONSE = Value(1)
     val EXPLORATION_STATUS = Value(2)
   }
 
+  val shortIdCodec = uint4
+
   val codecs = Map[Class[_ <: Message], Codec[_ <: Message]](
-    classOf[Hello] -> Hello.codec,
-    classOf[HelloAck] -> HelloAck.codec,
+    classOf[RegRequest] -> RegRequest.codec,
+    classOf[RegResponse] -> RegResponse.codec,
     classOf[ExplorationStatus] -> ExplorationStatus.codec
   )
 

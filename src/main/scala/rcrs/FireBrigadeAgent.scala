@@ -1,8 +1,7 @@
 package rcrs
 
 import mpmens.traits.map2d.{Map2DTrait, Position}
-import rcrs.comm.{Hello, HelloAck, Message}
-import rcrs.searching.Constants
+import rcrs.comm.{Constants, Message, RegRequest, RegResponse}
 import rcrs.traits.map2d.RCRSMapAdapterTrait
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
@@ -23,7 +22,7 @@ class FireBrigadeAgent extends ScalaAgent with Map2DTrait with RCRSMapAdapterTra
 
   private var explorationPath: map.AreaExploration = _
 
-  private var isKnown = false
+  private var shortId = -1
 
   override protected def postConnect() {
     super.postConnect()
@@ -48,36 +47,31 @@ class FireBrigadeAgent extends ScalaAgent with Map2DTrait with RCRSMapAdapterTra
     Logger.info(s"FireBrigadeAgent: Think called at time $time. Position ${getPosition}")
     super.think(time, changes, heard)
 
-    if (time < ignoreAgentCommandsUntil) {
+    if (time == ignoreAgentCommandsUntil) {
       Logger.info("Subscribing to channels")
-      sendSubscribe(time, Constants.CHANNELTOSTATION, Constants.CHANNELTOAGENTS)
-    } else {
+      sendSubscribe(time, Constants.TO_AGENTS)
+    }
 
+    if (time >= ignoreAgentCommandsUntil) {
       Logger.info("Heard: " + heard)
-      for (command <- heard) {
-        command match {
-          case speak: AKSpeak =>
-            if (speak.getChannel == Constants.CHANNELTOAGENTS) {
-              val msg = Message.decode(speak.getContent)
+      for (speak <- heard.collect{ case speak: AKSpeak => speak }) {
+        val msg = Message.decode(speak.getContent)
 
-              msg match {
-                case HelloAck(idList) =>
-                  isKnown = isKnown || idList.contains(getID)
-                case _ =>
-              }
-            }
+        msg match {
+          case RegResponse(id, sId) if id == getID =>
+            shortId = sId
+            Logger.info(s"Agent registered id: $id, shortId: $sId")
 
           case _ =>
         }
       }
 
-      if (!isKnown) {
-        Logger.info("Sending Hello")
-        sendSpeak(time, Constants.CHANNELTOSTATION, Message.encode(new Hello(AgentType.FIRE_BRIGADE)))
+      if (shortId == -1) {
+        sendSpeak(time, Constants.TO_STATION, Message.encode(new RegRequest()))
       }
 
       if (path != null) {
-        val history = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y)}.toList
+        val history = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y) }.toList
 
         val walkedPath = map.getWalkedPath(pathOrigin, path, history)
 

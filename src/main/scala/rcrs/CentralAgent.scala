@@ -2,13 +2,11 @@ package rcrs
 
 import mpmens.Universe
 import mpmens.traits.map2d.Map2DTrait
-import rcrs.AgentType.AgentType
-import rcrs.comm.{Hello, HelloAck, Message}
-import rcrs.searching.Constants
+import rcrs.comm.{Constants, Message, RegRequest, RegResponse}
 import rcrs.traits.time.CurrentTimeTrait
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
-import rescuecore2.standard.entities.{Building, StandardEntityURN}
+import rescuecore2.standard.entities.{Building, StandardEntity, StandardEntityURN}
 import rescuecore2.standard.messages.AKSpeak
 import rescuecore2.worldmodel.{ChangeSet, EntityID}
 
@@ -17,9 +15,11 @@ import scala.collection.mutable
 class CentralAgent extends ScalaAgent {
   override type AgentEntityType = Building
 
-  case class AgentInfo(id: EntityID, agentType: AgentType)
+  case class AgentInfo(entity: StandardEntity, shortId: Int)
 
-  val agents = mutable.Map.empty[EntityID, AgentInfo]
+  val agentsById = mutable.Map.empty[EntityID, AgentInfo]
+  val agentsByShortId = mutable.Map.empty[Int, AgentInfo]
+  var shortIdCounter = 0
 
   object RescueScenario extends Universe with RCRSAgentTrait with Map2DTrait with CurrentTimeTrait {
 
@@ -68,36 +68,46 @@ class CentralAgent extends ScalaAgent {
     Logger.info(s"CentralAgent: Think called at time $time")
     super.think(time, changes, heard)
 
-    if (time < ignoreAgentCommandsUntil) {
+    if (time == ignoreAgentCommandsUntil) {
       Logger.info("Subscribing to channels")
-      sendSubscribe(time, Constants.CHANNELTOSTATION, Constants.CHANNELTOAGENTS)
-    } else {
+      sendSubscribe(time, Constants.TO_STATION)
+    }
 
+    if (time >= ignoreAgentCommandsUntil) {
       val helloAcks = mutable.ListBuffer.empty[EntityID]
 
       Logger.info("Heard: " + heard)
-      for (command <- heard) {
-        command match {
-          case speak: AKSpeak =>
-            if (speak.getChannel == Constants.CHANNELTOAGENTS) {
-              val msg = Message.decode(speak.getContent)
+      for (speak <- heard.collect{ case speak: AKSpeak => speak }) {
+        val msg = Message.decode(speak.getContent)
 
-              msg match {
-                case Hello(agentType) =>
-                  println(speak.getURN)
-                  helloAcks += speak.getAgentID
-                  agents += speak.getAgentID -> new AgentInfo(speak.getAgentID, agentType)
-                case _ =>
-              }
+        val sender = model.getEntity(speak.getAgentID)
+
+        msg match {
+          case RegRequest() =>
+            val id = speak.getAgentID
+
+            val agentInfo = agentsById.get(id) match {
+              case None =>
+                val aInfo = new AgentInfo(sender, shortIdCounter)
+
+                shortIdCounter = shortIdCounter + 1
+
+                agentsById += id -> aInfo
+                agentsByShortId += aInfo.shortId -> aInfo
+
+                aInfo
+
+              case Some(aInfo) =>
+                aInfo
             }
+
+            sendSpeak(time, Constants.TO_AGENTS, Message.encode(new RegResponse(id, agentInfo.shortId)))
+
 
           case _ =>
         }
       }
 
-    if (helloAcks.nonEmpty) {
-      Logger.info("Sending HelloAck " + helloAcks)
-      sendSpeak(time, Constants.CHANNELTOAGENTS, Message.encode(new HelloAck(helloAcks.toList)))
     }
 
     /*
@@ -126,7 +136,6 @@ class CentralAgent extends ScalaAgent {
           println(RescueScenario.toString)
         }
     */
-    }
   }
 
   override protected def getRequestedEntityURNs: List[StandardEntityURN] = List(StandardEntityURN.FIRE_STATION, StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE)
