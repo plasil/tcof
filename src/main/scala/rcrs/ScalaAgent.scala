@@ -5,6 +5,7 @@ import java.util.{Collection, EnumSet}
 import mpmens.traits.map2d.{Map2DTrait, Position}
 import rcrs.traits.RCRSTrait
 import rcrs.traits.map2d.RCRSMapAdapterTrait
+import rescuecore2.log.Logger
 import rescuecore2.messages.Command
 import rescuecore2.standard.components.StandardAgent
 import rescuecore2.standard.entities.{Area, Human, StandardEntity, StandardEntityURN}
@@ -88,7 +89,10 @@ abstract class ScalaAgent extends RCRSTrait {
     def delegateSendMove(time: Int, path: List[EntityID], destX: Int, destY: Int) = sendMove(time, ListBuffer(path: _*).asJava, destX, destY)
     def delegateSendSubscribe(time: Int, channels: Int*) = sendSubscribe(time, channels: _*)
     def delegateSendRest(time: Int) = sendRest(time)
-    def delegateSendSpeak(time: Int, channel: Int, data: Array[Byte]) = sendSpeak(time, channel, data)
+    def delegateSendSpeak(time: Int, channel: Int, data: Array[Byte]) = {
+      Logger.info(s"Calling sendSpeak($time, $channel, $data)")
+      sendSpeak(time, channel, data)
+    }
     def delegateSendExtinguish(time: Int, target: EntityID, water: Int) = sendExtinguish(time, target, water)
   }
 

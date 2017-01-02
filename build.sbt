@@ -19,10 +19,12 @@ libraryDependencies ++= Seq(
   "org.uncommons.maths" % "uncommons-maths" % "1.2.2a",
   "trove" % "trove" % "1.0.2",
   "org.scala-lang" % "scala-library" % "2.12.0",
+  "org.scodec" %% "scodec-core" % "1.10.3",
+  "org.scodec" %% "scodec-bits" % "1.10.3"
 
   // unit tests
-  "org.scalactic" %% "scalactic" % "3.0.1",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+//  "org.scalactic" %% "scalactic" % "3.0.1",
+//  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
 cleanFiles += (baseDirectory(_ / "precomputed.data")).value

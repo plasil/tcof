@@ -25,6 +25,8 @@ object Main {
 
     Logger.info("Connecting fire brigade ... ")
     launcher.connect(new FireBrigadeAgent().rcrsAgent)
+    launcher.connect(new FireBrigadeAgent().rcrsAgent)
+    launcher.connect(new FireBrigadeAgent().rcrsAgent)
     launcher.connect(new CentralAgent().rcrsAgent)
     Logger.info("success")
   }

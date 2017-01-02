@@ -34,8 +34,6 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
     val lineOfSight = mutable.Map.empty[map.Node, Set[map.Node]]
 
     def getWalkedPath(origin: map.Node, path: List[map.Node], history: List[Position]): List[map.Node] = {
-      val maxSkippedHistAreas = 3
-
       val histAreas = history.map( pos =>
         agent.model.getObjectsInRange(pos.x.toInt, pos.y.toInt, 0).asScala
         .collectFirst{ case area: Area if area.getShape.contains(pos.x, pos.y) => area }.get
@@ -50,14 +48,10 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
       var remainingAreas = path.map(toArea)
       val walkedPath = mutable.ListBuffer.empty[map.Node]
 
-      var skippedHistAreas = 0
-
-      while (skippedHistAreas <= maxSkippedHistAreas && histIterator.hasNext) {
+      while (histIterator.hasNext) {
         var histArea = histIterator.next
 
         if (histArea == pathArea || remainingAreas.contains(histArea)) {
-          skippedHistAreas = 0
-
           while (histArea != pathArea) {
             val pathNode = remainingPath.head
             remainingPath = remainingPath.tail
@@ -65,13 +59,11 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
             pathArea = toArea(pathNode)
             walkedPath += pathNode
           }
-        } else {
-          skippedHistAreas = skippedHistAreas + 1
         }
-      }
 
-      if (skippedHistAreas > maxSkippedHistAreas)
-        throw new Exception("Path and the walking history do not match.")
+        // If the condition above does not hold, we are slightly off the track. Either this gets corrected later in
+        // the histAreas or it gets corrected in the next walk
+      }
 
       walkedPath.toList
     }

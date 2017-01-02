@@ -174,7 +174,12 @@ trait WithAreaExploration {
 
     def walked(path: List[Node]): Unit = {
       val pathWithOrigin = walkedPathWithOrigin ++ path
-      require(assumePathWithOrigin.startsWith(pathWithOrigin))
+
+      if (!assumePathWithOrigin.startsWith(pathWithOrigin)) {
+        // We walked beyond assumed path. Thus assume this longer path.
+        // Checking of prefix equality is part of the "assume" method. This may potentially restart the search.
+        assume(path)
+      }
 
       walkedPathWithOrigin = pathWithOrigin
     }
