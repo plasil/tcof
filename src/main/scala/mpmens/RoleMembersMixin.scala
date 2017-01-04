@@ -38,7 +38,7 @@ trait RoleMembersMixin {
   class RoleMembersImplied[+ComponentType <: Universe#Component](val mirroredRoleMembers: Iterable[MirroredRoleMember[ComponentType]]) extends RoleMembers(mirroredRoleMembers.map(_.value)) {
 
     /** Creates members from existing parent without any filtering. */
-    def this(parent: WithMembers[ComponentType]) = this(parent.allMembers.values.zipWithIndex.map(memberAndIdx => MirroredRoleMember(memberAndIdx._1, parent, memberAndIdx._2)))
+    def this(parent: WithMembers[ComponentType]) = this(parent.allMembers.values.zipWithIndex.map{ case (member, idx) => MirroredRoleMember(member, parent, idx) })
 
     override def mapChildToParent(membersContainer: WithMembers[Universe#Component]): Unit = {
       val members = mirroredRoleMembers.zipWithIndex
@@ -60,7 +60,7 @@ trait RoleMembersMixin {
   class RoleMembersEquiv[+ComponentType <: Universe#Component](val mirroredRoleMembers: Iterable[MirroredRoleMember[ComponentType]]) extends RoleMembers(mirroredRoleMembers.map(_.value)) {
 
     /** Creates members from existing parent without any filtering. */
-    def this(parent: WithMembers[ComponentType]) = this(parent.allMembers.values.zipWithIndex.map(memberAndIdx => MirroredRoleMember(memberAndIdx._1, parent, memberAndIdx._2)))
+    def this(parent: WithMembers[ComponentType]) = this(parent.allMembers.values.zipWithIndex.map{ case (member, idx) => MirroredRoleMember(member, parent, idx) })
 
     override def mapChildToParent(membersContainer: WithMembers[Universe#Component]): Unit = {
       val members = mirroredRoleMembers.zipWithIndex

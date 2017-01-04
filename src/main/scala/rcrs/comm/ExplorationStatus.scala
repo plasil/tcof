@@ -25,6 +25,6 @@ object ExplorationStatus {
   val codec = {
     (constant(BitVector.fromInt(Message.MessageType.EXPLORATION_STATUS.id, Message.MessageTypeBits))) ::
     ("currentAreaId" | Message.entityIDCodec) ::
-    ("statusMap" | listOfN(uint(6), ("closeIdx" | closeIdxCodec) ~ choice(roadStatusCodec, buildingStatusCodec)).xmap((list: List[(Int, RCRSNodeStatus)]) => list.toMap, (map: Map[Int, RCRSNodeStatus]) => map.toList))
+    ("statusMap" | listOfN(uint(6), ("closeIdx" | closeIdxCodec) ~ choice(roadStatusCodec, buildingStatusCodec)).xmap[Map[Int, RCRSNodeStatus]](_.toMap, _.toList))
   }.as[ExplorationStatus]
 }

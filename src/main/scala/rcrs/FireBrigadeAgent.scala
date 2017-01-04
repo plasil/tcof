@@ -97,14 +97,14 @@ class FireBrigadeAgent extends ScalaAgent with Map2DTrait[RCRSNodeStatus] with R
 
       map.nodeStatus ++= statusChanges
 
-      val msg = new ExplorationStatus(currentAreaId, statusChanges.map(kv => map.closeNodes(referenceNode).byNode(kv._1) -> kv._2).toMap)
+      val msg = new ExplorationStatus(currentAreaId, statusChanges.collect{ case (node, status) => map.closeAreaIDs(currentAreaId).byAreaId(map.toArea(node).getID) -> status }.toMap)
       println(msg)
       sendSpeak(time, Constants.TO_STATION, Message.encode(msg))
 
 
 
       if (path != null) {
-        val history = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y) }.toList
+        val history = me.getPositionHistory.toList.grouped(2).map{ case List(x,y) => Position(x,y) }.toList
 
         val walkedPath = map.getWalkedPath(pathOrigin, path, history)
 

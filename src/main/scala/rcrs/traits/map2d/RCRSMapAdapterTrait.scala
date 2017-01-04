@@ -32,44 +32,9 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
 
     val lineOfSight = mutable.Map.empty[map.Node, Set[map.Node]]
 
-
     val nodeStatus = mutable.Map.empty[map.Node, RCRSNodeStatus]
 
-
-    case class CloseNodes(byIdx: Map[Int, map.Node], byNode: Map[map.Node, Int])
-    val closeNodes = mutable.Map.empty[map.Node, CloseNodes]
-
-
-    /** XXX - Not needed now. Remove if not needed in the near future.
-      * Converts a consecutive path to a list of indexes of neighbors. This is meant as space conserving representation of a path
-      * since the indexes fall in the range 0..15. Indexes are 1-based. Index 0 means the same node.
-    def getPathAsNeighIdx(origin: map.Node, path: List[map.Node]) = {
-      val originArea = toArea(origin)
-      val areas = path.map(toArea)
-
-      for {
-        (from, to) <- (originArea :: areas).zip(areas)
-
-        toIdx = if (from == to)
-          0
-        else {
-          val neighIdx = from.getNeighbours.asScala.indexOf(to.getID)
-          require(neighIdx >=0 )
-          neighIdx + 1
-        }
-      } yield toIdx
-    }
-
-    def getPathFromNeighIdx(origin: map.Node, pathAsNeighIdx: List[Int]) = {
-      val originArea = toArea(origin)
-
-      pathAsNeighIdx.foldLeft((List.empty[map.Node], originArea))((pathAndArea, idx) => {
-        val node = if (idx == 0) toNode(pathAndArea._2.getID) else toNode(pathAndArea._2.getNeighbours.get(idx - 1))
-        (node :: pathAndArea._1, toArea(node))
-      })._1.reverse
-    }
-    */
-
+    val closeAreaIDs = RCRSMapStatic.closeAreaIDs
 
     def getWalkedPath(origin: map.Node, path: List[map.Node], history: List[Position]): List[map.Node] = {
       val histAreas = history.map( pos =>
@@ -144,12 +109,6 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
       }
 
       lineOfSight ++= RCRSMapStatic.lineOfSight.map { case (area, areasInSight) => ( toNode(area) -> areasInSight.map(toNode)) }
-
-      for (node <- map.nodes) {
-        val nodes = map.nodes.filter(n => node.center.distanceTo(n.center) < 100000).sortBy(n => node.center.distanceTo(n.center)).zipWithIndex
-        closeNodes += node -> CloseNodes(nodes.map(_.swap).toMap, nodes.toMap)
-      }
-
     }
 
     object RCRSAreaExploration {

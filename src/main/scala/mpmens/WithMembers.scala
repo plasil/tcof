@@ -41,7 +41,7 @@ trait WithMembers[+MemberType] extends WithSystemDelegates {
 
   def membersWithSelectionIndicator: Iterable[(Boolean, MemberType)] = {
     val selection = allMembersVar.getValue
-    allMembers.values.zipWithIndex.map(memberAndIndex => (selection.contains(memberAndIndex._2), memberAndIndex._1))
+    allMembers.values.zipWithIndex.map{case (member, idx) => (selection.contains(idx), member)}
   }
 
   def selectedMembers: Iterable[MemberType] = {
