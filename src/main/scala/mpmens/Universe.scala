@@ -3,7 +3,7 @@ package mpmens
 import org.chocosolver.solver.Model
 
 
-class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin with RoleMembersMixin with ImplicitsMixin with RolesMixin with EnsembleGroupsMixin with EnsemblesMixin {
+class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin with RoleMembersMixin with ImplicitsMixin with RolesMixin with EnsembleGroupsMixin with EnsemblesMixin with ComponentsMixin with ActionsMixin{
   uniThis =>
 
   trait SystemDelegates extends WithSystemDelegates {
@@ -29,6 +29,7 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
   def utility_= (cst: Integer): Unit = rootEnsemble.utility = cst
   def utility: Option[Integer] = rootEnsemble.utility
   def membership(clause: Logical): Unit = rootEnsemble.membership(clause)
+  def actions(act: => Unit) = rootEnsemble.actions(act _)
 
   private var rootEnsembleInit: () => Unit = _
 
@@ -83,6 +84,11 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
 
   def solve(): Boolean = {
     solverModel.getSolver.solve()
+  }
+
+  def commit(): Unit = {
+    rootEnsemble.executeActions()
+    components.foreach(_.executeActions())
   }
 
   def solutionUtility: Int = rootEnsemble.solutionUtility

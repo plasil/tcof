@@ -5,7 +5,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait WithAreaExploration {
-  this: Map2D =>
+  this: Map2D[_] =>
 
   object AreaExploration {
     def apply(origin: Node, toExplore: Set[Node], nodesInView: Node => Iterable[Node]): AreaExploration =

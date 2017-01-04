@@ -3,7 +3,7 @@ package rcrs
 import mpmens.traits.map2d.{Map2D, Position}
 
 
-case class MapZone(map: Map2D, xIdx: Int, yIdx: Int, maxLastVisitTime: Int) {
+case class MapZone(map: Map2D[_], xIdx: Int, yIdx: Int, maxLastVisitTime: Int) {
   override def toString: String = s"MapZone($xIdx, $yIdx)"
 
   val toExplore: Set[map.Node] = map.nodes.filter(node =>

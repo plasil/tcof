@@ -5,7 +5,7 @@ import de.ummels.prioritymap.PriorityMap
 import scala.collection.mutable
 
 trait WithShortestPath {
-  this: Map2D =>
+  this: Map2D[_] =>
 
   object ShortestPath {
     private val cache = mutable.Map.empty[Node, (List[Node], Map[Node, Double], Map[Node, Node])]

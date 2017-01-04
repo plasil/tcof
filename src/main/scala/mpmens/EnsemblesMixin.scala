@@ -3,7 +3,7 @@ package mpmens
 trait EnsemblesMixin {
   this: Universe =>
 
-  class Ensemble(val name: String) extends WithUtility with WithEnsembleGroups with WithRoles {
+  class Ensemble(val name: String) extends WithUtility with WithEnsembleGroups with WithRoles with WithActionsInEnsemble {
     private[mpmens] var membershipClause: Logical = _
 
     def membership(clause: Logical): Unit = {

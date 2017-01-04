@@ -1,3 +1,0 @@
-package mpmens
-
-class Component

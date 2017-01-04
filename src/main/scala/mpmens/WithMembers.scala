@@ -19,7 +19,7 @@ trait WithMembers[+MemberType] extends WithSystemDelegates {
 
   def cardinality: Cardinality = new Cardinality
 
-  def contains(component: Component): Logical = some((x) => LogicalBoolean(x == component))
+  def contains(member: Any): Logical = some((x) => LogicalBoolean(x == member))
 
   def sum(fun: MemberType => Integer): Integer = universe.IntegerUtils.sumBasedOnMembership(allMembersVar, allMembers.values.map(fun))
 
@@ -28,6 +28,21 @@ trait WithMembers[+MemberType] extends WithSystemDelegates {
 
   def some(fun: MemberType => Logical): Logical =
     universe.LogicalUtils.existsSelected(allMembers.values.map(fun), allMembersVar)
+
+  def foreachBySelection(forSelected: MemberType => Unit, forNotSelected: MemberType => Unit): Unit = {
+    val selection = allMembersVar.getValue
+    for ((member, idx) <- allMembers.values.zipWithIndex) {
+      if (selection.contains(idx))
+        forSelected(member)
+      else
+        forNotSelected(member)
+    }
+  }
+
+  def membersWithSelectionIndicator: Iterable[(Boolean, MemberType)] = {
+    val selection = allMembersVar.getValue
+    allMembers.values.zipWithIndex.map(memberAndIndex => (selection.contains(memberAndIndex._2), memberAndIndex._1))
+  }
 
   def selectedMembers: Iterable[MemberType] = {
     import scala.collection.JavaConverters._

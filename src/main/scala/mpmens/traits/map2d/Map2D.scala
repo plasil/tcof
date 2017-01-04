@@ -1,15 +1,15 @@
 package mpmens.traits.map2d
 
-class Map2D extends WithShortestPath with WithAreaExploration {
+class Map2D[NodeStatusType] extends WithShortestPath with WithAreaExploration {
   class Node private[map2d](val center: Position) {
     private[map2d] var _neighbors = Map.empty[Node, Edge]
     def neighbors: Map[Node, Edge] = _neighbors
 
-    private var _lastVisitTime = Int.MinValue
-    def lastVisitTime = _lastVisitTime
-    def lastVisitTime_=(time: Int) = _lastVisitTime = time
+    var lastVisitTime = Int.MinValue
 
-    override def toString() = s"Node(${_lastVisitTime})"
+    var status: NodeStatusType = _
+
+    override def toString() = s"Node(${lastVisitTime})"
   }
 
   class Edge private[map2d](val from: Node, val to: Node, private var _cost: Double) {

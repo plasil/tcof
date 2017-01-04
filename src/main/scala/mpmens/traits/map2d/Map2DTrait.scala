@@ -3,9 +3,9 @@ package mpmens.traits.map2d
 import mpmens.traits.Trait
 
 
-trait Map2DTrait extends Trait {
+trait Map2DTrait[NodeStatusType] extends Trait {
 
-  val map: Map2D = new Map2D
+  val map: Map2D[NodeStatusType] = new Map2D[NodeStatusType]
 
   override def traitInit(): Unit = {
     super.traitInit()

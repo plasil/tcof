@@ -1,15 +1,19 @@
 package rcrs
 
 import mpmens.traits.map2d.{Map2DTrait, Position}
-import rcrs.comm.{Constants, Message, RegRequest, RegResponse}
-import rcrs.traits.map2d.RCRSMapAdapterTrait
+import rcrs.comm._
+import rcrs.traits.map2d.{BuildingStatus, RCRSMapAdapterTrait, RCRSNodeStatus, RoadStatus}
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
-import rescuecore2.standard.entities.{StandardEntityURN, FireBrigade => FireBrigadeEntity}
+import rescuecore2.standard.entities.{Area, Building, Road, StandardEntityURN, FireBrigade => FireBrigadeEntity}
 import rescuecore2.standard.messages.AKSpeak
 import rescuecore2.worldmodel.ChangeSet
 
-class FireBrigadeAgent extends ScalaAgent with Map2DTrait with RCRSMapAdapterTrait {
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+
+
+class FireBrigadeAgent extends ScalaAgent with Map2DTrait[RCRSNodeStatus] with RCRSMapAdapterTrait {
   override type AgentEntityType = FireBrigadeEntity
 
   private val MAX_WATER_KEY = "fire.tank.maximum"
@@ -47,6 +51,8 @@ class FireBrigadeAgent extends ScalaAgent with Map2DTrait with RCRSMapAdapterTra
     Logger.info(s"FireBrigadeAgent: Think called at time $time. Position ${getPosition}")
     super.think(time, changes, heard)
 
+    Logger.info(s"changes: $changes")
+
     if (time == ignoreAgentCommandsUntil) {
       Logger.info("Subscribing to channels")
       sendSubscribe(time, Constants.TO_AGENTS)
@@ -69,6 +75,33 @@ class FireBrigadeAgent extends ScalaAgent with Map2DTrait with RCRSMapAdapterTra
       if (shortId == -1) {
         sendSpeak(time, Constants.TO_STATION, Message.encode(new RegRequest()))
       }
+
+
+      val referenceNode = map.toNode(currentAreaId)
+      val statusChanges = mutable.Map.empty[map.Node, RCRSNodeStatus]
+
+      for (entityId <- changes.getChangedEntities.asScala) {
+
+        agent.model.getEntity(entityId) match {
+          case area: Area =>
+            val changedNode = map.toNode(area.getID)
+
+            area match {
+              case road: Road => statusChanges += changedNode -> RoadStatus(42)
+              case building: Building => statusChanges += changedNode -> BuildingStatus(changes.getChangedProperty(entityId, "urn:rescuecore2.standard:property:temperature").getValue.asInstanceOf[Int], changes.getChangedProperty(entityId, "urn:rescuecore2.standard:property:brokenness").getValue.asInstanceOf[Int])
+            }
+
+          case _ =>
+        }
+      }
+
+      map.nodeStatus ++= statusChanges
+
+      val msg = new ExplorationStatus(currentAreaId, statusChanges.map(kv => map.closeNodes(referenceNode).byNode(kv._1) -> kv._2).toMap)
+      println(msg)
+      sendSpeak(time, Constants.TO_STATION, Message.encode(msg))
+
+
 
       if (path != null) {
         val history = me.getPositionHistory.toList.grouped(2).collect{ case List(x,y) => Position(x,y) }.toList

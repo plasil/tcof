@@ -1,8 +1,9 @@
 package rcrs
 
 import mpmens.Universe
-import mpmens.traits.map2d.Map2DTrait
-import rcrs.comm.{Constants, Message, RegRequest, RegResponse}
+import mpmens.traits.map2d.{Map2DTrait, Position, PositionAware}
+import rcrs.comm._
+import rcrs.traits.map2d.RCRSNodeStatus
 import rcrs.traits.time.CurrentTimeTrait
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
@@ -21,12 +22,46 @@ class CentralAgent extends ScalaAgent {
   val agentsByShortId = mutable.Map.empty[Int, AgentInfo]
   var shortIdCounter = 0
 
-  object RescueScenario extends Universe with RCRSAgentTrait with Map2DTrait with CurrentTimeTrait {
+  class Mode
+
+  object RescueScenario extends Universe with RCRSAgentTrait with Map2DTrait[RCRSNodeStatus] with CurrentTimeTrait {
+
+    trait Explorer {
+      var explorationZone: MapZone = null
+    }
+
+    abstract class MobileUnit(name: String, var position: Position) extends Component(name) with PositionAware with Explorer
+
+    class PoliceForce(_position: Position) extends MobileUnit("PoliceForce", _position)
+    class FireBrigade(_position: Position) extends MobileUnit("FireBrigade", _position)
+    class AmbulanceTeam(_position: Position) extends MobileUnit("AmbulanceTeam", _position)
+
+/*
+      modes(AgentRegistrationManager, NodeStatusManager)
+
+      constraints(
+        Exploration -> (explorationZone != null) &&
+        allExclusive(Exploration, Rest)
+      )
+
+      utility =
+        Exploration -> 5 +
+        Rest -> 3
+
+      actions {
+        modes.selectedMembers.foreach {
+          case Exploration => exploration
+          case Rest => rest
+        }
+      }
+*/
 
     class ExplorationTeams(val zone: MapZone) extends Ensemble(s"ExplorationTeam for $zone") {
-      val fireBrigades = role("fireBrigades", components.withRole[FireBrigade])
-      val ambulances = role("ambulanceTeams", components.withRole[AmbulanceTeam])
-      val police = role("policeForces", components.withRole[PoliceForce])
+      val mobileUnits = role("mobileUnits", components.select[MobileUnit])
+
+      val fireBrigades = role("fireBrigades", mobileUnits.selectEquiv[FireBrigade])
+      val ambulances = role("ambulanceTeams", mobileUnits.selectEquiv[AmbulanceTeam])
+      val police = role("policeForces", mobileUnits.selectEquiv[PoliceForce])
 
       membership(
         fireBrigades.cardinality >= 1 &&
@@ -36,9 +71,11 @@ class CentralAgent extends ScalaAgent {
 
       def proximityToZoneCenter(unit: MobileUnit) = 100 - (unit.position.distanceTo(zone.center) / 10000).round.toInt
 
-      utility = fireBrigades.sum(proximityToZoneCenter(_)) +
-        ambulances.sum(proximityToZoneCenter(_)) +
-        police.sum(proximityToZoneCenter(_))
+      utility = mobileUnits.sum(proximityToZoneCenter(_))
+
+      actions {
+        mobileUnits.foreachBySelection(_.explorationZone = zone, _.explorationZone = null)
+      }
     }
 
     system {
@@ -73,6 +110,8 @@ class CentralAgent extends ScalaAgent {
       sendSubscribe(time, Constants.TO_STATION)
     }
 
+    import RescueScenario.{map, map2dToRcrsMap2D}
+
     if (time >= ignoreAgentCommandsUntil) {
       val helloAcks = mutable.ListBuffer.empty[EntityID]
 
@@ -103,6 +142,13 @@ class CentralAgent extends ScalaAgent {
 
             sendSpeak(time, Constants.TO_AGENTS, Message.encode(new RegResponse(id, agentInfo.shortId)))
 
+          case ExplorationStatus(referenceAreaId, statusMap) =>
+            val refNode = map.toNode(referenceAreaId)
+            val nodes = statusMap.map(kv => map.closeNodes(refNode).byIdx(kv._1) -> kv._2)
+
+            map.nodeStatus ++= nodes
+
+            Logger.info(s"Exploration status updated for: ${nodes.keys.map(map.toArea)}")
 
           case _ =>
         }
@@ -115,18 +161,18 @@ class CentralAgent extends ScalaAgent {
 
 
         RescueScenario.components = List(
-          new FireBrigade(Position(391738, 3370)),
-          new FireBrigade(Position(424810, 354780)),
-          new FireBrigade(Position(48738, 145870)),
-          new FireBrigade(Position(187810, 248325)),
-          new AmbulanceTeam(Position(128728, 82480)),
-          new AmbulanceTeam(Position(24810, 248480)),
-          new AmbulanceTeam(Position(148738, 268010)),
-          new AmbulanceTeam(Position(324840, 48325)),
-          new PoliceForce(Position(454848, 305548)),
-          new PoliceForce(Position(68720, 218880)),
-          new PoliceForce(Position(78148, 105870)),
-          new PoliceForce(Position(123580, 38875))
+          new RescueScenario.FireBrigade(Position(391738, 3370)),
+          new RescueScenario.FireBrigade(Position(424810, 354780)),
+          new RescueScenario.FireBrigade(Position(48738, 145870)),
+          new RescueScenario.FireBrigade(Position(187810, 248325)),
+          new RescueScenario.AmbulanceTeam(Position(128728, 82480)),
+          new RescueScenario.AmbulanceTeam(Position(24810, 248480)),
+          new RescueScenario.AmbulanceTeam(Position(148738, 268010)),
+          new RescueScenario.AmbulanceTeam(Position(324840, 48325)),
+          new RescueScenario.PoliceForce(Position(454848, 305548)),
+          new RescueScenario.PoliceForce(Position(68720, 218880)),
+          new RescueScenario.PoliceForce(Position(78148, 105870)),
+          new RescueScenario.PoliceForce(Position(123580, 38875))
         )
 
         RescueScenario.init()
@@ -135,6 +181,8 @@ class CentralAgent extends ScalaAgent {
         while (RescueScenario.solve()) {
           println(RescueScenario.toString)
         }
+
+        RescueScenario.commit()
     */
   }
 

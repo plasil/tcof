@@ -1,14 +1,30 @@
 package rcrs.comm
 
+import rcrs.traits.map2d.{BuildingStatus, RCRSNodeStatus, RoadStatus}
+import rescuecore2.worldmodel.EntityID
 import scodec._
 import scodec.bits._
 import scodec.codecs._
 
-case class ExplorationStatus(dummy: Int) extends Message
+case class ExplorationStatus(currentAreaId: EntityID, statusMap: Map[Int, RCRSNodeStatus]) extends Message
 
 object ExplorationStatus {
+  val closeIdxCodec = uint(7)
+
+  val roadStatusCodec = {
+    (constant(bin"00")) ::
+    ("dummy" | int8)
+  }.as[RoadStatus].upcast[RCRSNodeStatus]
+
+  val buildingStatusCodec = {
+    (constant(bin"01")) ::
+    ("temperature" | uint8) ::
+    ("brokenness" | uint8)
+  }.as[BuildingStatus].upcast[RCRSNodeStatus]
+
   val codec = {
     (constant(BitVector.fromInt(Message.MessageType.EXPLORATION_STATUS.id, Message.MessageTypeBits))) ::
-    ("dummy" | int(32))
+    ("currentAreaId" | Message.entityIDCodec) ::
+    ("statusMap" | listOfN(uint(6), ("closeIdx" | closeIdxCodec) ~ choice(roadStatusCodec, buildingStatusCodec)).xmap((list: List[(Int, RCRSNodeStatus)]) => list.toMap, (map: Map[Int, RCRSNodeStatus]) => map.toList))
   }.as[ExplorationStatus]
 }

@@ -4,7 +4,7 @@ import java.util.{Collection, EnumSet}
 
 import mpmens.traits.map2d.{Map2DTrait, Position}
 import rcrs.traits.RCRSTrait
-import rcrs.traits.map2d.RCRSMapAdapterTrait
+import rcrs.traits.map2d.{RCRSMapAdapterTrait, RCRSNodeStatus}
 import rescuecore2.messages.Command
 import rescuecore2.standard.components.StandardAgent
 import rescuecore2.standard.entities.{Area, Human, StandardEntity, StandardEntityURN}
@@ -21,7 +21,7 @@ abstract class ScalaAgent extends RCRSTrait {
   type AgentEntityType <: StandardEntity
 
   trait RCRSAgentTrait extends RCRSTrait with RCRSMapAdapterTrait {
-    this: Map2DTrait =>
+    this: Map2DTrait[RCRSNodeStatus] =>
     override def agent = sagent
   }
 
