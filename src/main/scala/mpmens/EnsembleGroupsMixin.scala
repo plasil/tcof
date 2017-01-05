@@ -1,5 +1,6 @@
 package mpmens
 
+import mpmens.InitStages.InitStages
 import mpmens.Utils._
 
 import scala.collection.mutable
@@ -7,11 +8,11 @@ import scala.collection.mutable
 trait EnsembleGroupsMixin {
   this: Universe =>
 
-  class EnsembleGroupMembers[+EnsembleType <: Ensemble](values: Iterable[EnsembleType]) extends Members(values) {
+  class EnsembleGroupMembers[+EnsembleType <: Ensemble](values: Iterable[EnsembleType]) extends Members(values) with WithConfig {
     def mapEnsembleActivationRecursive(thisGroup: EnsembleGroup[Ensemble], parentGroup: EnsembleGroup[Ensemble] = null, ensembleIndexInParent: Int = 0): Unit = {
       if (parentGroup != null) {
         for (idx <- 0 until size) {
-          solverModel.ifThen(solverModel.member(idx, thisGroup.allMembersVar), solverModel.member(ensembleIndexInParent, parentGroup.allMembersVar))
+          _solverModel.ifThen(_solverModel.member(idx, thisGroup.allMembersVar), _solverModel.member(ensembleIndexInParent, parentGroup.allMembersVar))
         }
       }
 
@@ -26,7 +27,24 @@ trait EnsembleGroupsMixin {
     }
   }
 
+  class EnsembleGroup[+EnsembleType <: Ensemble](val name: String, private[mpmens] val allMembers: EnsembleGroupMembers[EnsembleType])
+    extends WithMembers[EnsembleType] with WithConfig with Initializable {
+
+    private[mpmens] def buildMembershipClause = _solverModel.forAllSelected(allMembers.map(_._buildEnsembleClause), allMembersVar)
+
+    override private[mpmens] def _init(stage: InitStages, config: Config): Unit = {
+      super._init(stage, config)
+      allMembers._init(stage, config)
+      allMembers.values.foreach(_._init(stage, config))
+    }
+
+    override def toString: String =
+      s"""Ensemble group "$name":\n${indent(selectedMembers.mkString(""), 1)}"""
+  }
+
   trait WithEnsembleGroups extends Initializable {
+    this: WithConfig =>
+
     /** A set of all potential ensembles */
     private[mpmens] val _ensembleGroups = mutable.Map.empty[String, EnsembleGroup[Ensemble]]
 
@@ -42,28 +60,12 @@ trait EnsembleGroupsMixin {
       group
     }
 
-    def ensembles[EnsembleType <: Ensemble](name: String): EnsembleGroup[EnsembleType] = _ensembleGroups(name).asInstanceOf[EnsembleGroup[EnsembleType]]
+    private[mpmens] def _buildEnsembleGroupClause: Logical = _solverModel.and(_ensembleGroups.values.map(_.buildMembershipClause))
 
-    private[mpmens] def _buildEnsembleGroupClause: Logical = LogicalUtils.and(_ensembleGroups.values.map(_.buildMembershipClause))
-
-    override private[mpmens] def _init(stage: Int) = {
-      super._init(stage)
-      _ensembleGroups.values.foreach(_._init(stage))
+    override private[mpmens] def _init(stage: InitStages, config: Config): Unit = {
+      super._init(stage, config)
+      _ensembleGroups.values.foreach(_._init(stage, config))
     }
-  }
-
-  class EnsembleGroup[+EnsembleType <: Ensemble](val name: String, private[mpmens] val allMembers: EnsembleGroupMembers[EnsembleType])
-    extends SystemDelegates with WithMembers[EnsembleType] with Initializable {
-
-    private[mpmens] def buildMembershipClause = LogicalUtils.forAllSelected(allMembers.map(_._buildEnsembleClause), allMembersVar)
-
-    override private[mpmens] def _init(stage: Int) = {
-      super._init(stage)
-      allMembers.values.foreach(_._init(stage))
-    }
-
-    override def toString: String =
-      s"""Ensemble group "$name":\n${indent(selectedMembers.mkString(""), 1)}"""
   }
 
 }

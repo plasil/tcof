@@ -50,7 +50,9 @@ class RescueScenario extends Universe with /* RCRSConnectorTrait with */ Map2DTr
     def randomWalk() {}
   }
 
-  class ExplorationTeams(val zone: MapZone) extends Ensemble(s"ExplorationTeam for $zone") {
+  class ExplorationTeams(val zone: MapZone) extends Ensemble {
+    name(s"ExplorationTeam for $zone")
+
     val mobileUnits = role("mobileUnits", components.select[MobileUnit])
 
     val fireBrigades = role("fireBrigades", mobileUnits.selectEquiv[FireBrigade])
@@ -89,7 +91,7 @@ class RescueScenario extends Universe with /* RCRSConnectorTrait with */ Map2DTr
     )
   }
 
-  def root = new System
+  val rootEnsemble = root(new System)
 }
 
 object Test {
@@ -112,11 +114,10 @@ object Test {
       new scenario.PoliceForce(Position(123580, 38875))
 */    )
 
-    scenario.init()
-    println("RescueScenario initialized")
+    scenario.rootEnsemble.init()
+    println("System initialized")
 
-
-    while (scenario.solve()) {
+    while (scenario.rootEnsemble.solve()) {
       println(scenario.toString)
     }
 

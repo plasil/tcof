@@ -1,33 +1,35 @@
 package mpmens
 
+import mpmens.InitStages.InitStages
 import org.chocosolver.solver.variables.SetVar
 
-trait WithMembers[+MemberType] extends WithSystemDelegates with Initializable {
+trait WithMembers[+MemberType] extends WithConfig with Initializable {
 
   private[mpmens] def allMembers: Members[MemberType]
 
   private[mpmens] var allMembersVar: SetVar = null
 
-  override private[mpmens] def _init(stage: Int) = {
-    super._init(stage)
+  override private[mpmens] def _init(stage: InitStages, config: Config): Unit = {
+    super._init(stage, config)
+
     stage match {
-      case 0 =>
-        allMembersVar = solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
+      case InitStages.VariableCreation =>
+        allMembersVar = _solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
       case _ =>
     }
   }
 
-  def cardinality: Integer = new universe.IntegerIntVar(allMembersVar.getCard)
+  def cardinality: Integer = _solverModel.IntegerIntVar(allMembersVar.getCard)
 
   def contains(member: Any): Logical = some((x) => LogicalBoolean(x == member))
 
-  def sum(fun: MemberType => Integer): Integer = universe.IntegerUtils.sumBasedOnMembership(allMembersVar, allMembers.values.map(fun))
+  def sum(fun: MemberType => Integer): Integer = _solverModel.sumBasedOnMembership(allMembersVar, allMembers.values.map(fun))
 
   def all(fun: MemberType => Logical): Logical =
-    universe.LogicalUtils.forAllSelected(allMembers.values.map(fun), allMembersVar)
+    _solverModel.forAllSelected(allMembers.values.map(fun), allMembersVar)
 
   def some(fun: MemberType => Logical): Logical =
-    universe.LogicalUtils.existsSelected(allMembers.values.map(fun), allMembersVar)
+    _solverModel.existsSelected(allMembers.values.map(fun), allMembersVar)
 
   def foreachBySelection(forSelected: MemberType => Unit, forNotSelected: MemberType => Unit): Unit = {
     val selection = allMembersVar.getValue

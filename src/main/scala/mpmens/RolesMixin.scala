@@ -1,5 +1,6 @@
 package mpmens
 
+import mpmens.InitStages.InitStages
 import mpmens.Utils._
 
 import scala.collection.mutable
@@ -11,7 +12,7 @@ trait RolesMixin {
   /**
     * Collection of members (components) kept in a role
     */
-  abstract class RoleMembers[+ComponentType <: Universe#Component](values: Iterable[ComponentType]) extends Members(values) {
+  abstract class RoleMembers[+ComponentType <: Universe#Component](values: Iterable[ComponentType]) extends Members(values) with WithConfig {
     private[mpmens] def mapChildToParent(membersContainer: WithMembers[Universe#Component])
   }
 
@@ -54,7 +55,7 @@ trait RolesMixin {
     override def mapChildToParent(membersContainer: WithMembers[Universe#Component]): Unit = {
       val members = mirroredRoleMembers.zipWithIndex
       for ((member, idx) <- members) {
-        solverModel.ifThen(solverModel.member(idx, membersContainer.allMembersVar), solverModel.member(member.indexInParent, member.parent.allMembersVar))
+        _solverModel.ifThen(_solverModel.member(idx, membersContainer.allMembersVar), _solverModel.member(member.indexInParent, member.parent.allMembersVar))
       }
     }
 
@@ -80,7 +81,7 @@ trait RolesMixin {
     override def mapChildToParent(membersContainer: WithMembers[Universe#Component]): Unit = {
       val members = mirroredRoleMembers.zipWithIndex
       for ((member, idx) <- members) {
-        solverModel.ifOnlyIf(solverModel.member(idx, membersContainer.allMembersVar), solverModel.member(member.indexInParent, member.parent.allMembersVar))
+        _solverModel.ifOnlyIf(_solverModel.member(idx, membersContainer.allMembersVar), _solverModel.member(member.indexInParent, member.parent.allMembersVar))
       }
     }
 
@@ -97,7 +98,7 @@ trait RolesMixin {
 
   /** Represents a role in an ensemble. Implements methods to build membership over components contained in a role. */
   class Role[+ComponentType <: Universe#Component](val name: String, private[mpmens] val allMembers: RoleMembers[ComponentType])
-      extends SystemDelegates with WithMembers[ComponentType] with Initializable {
+      extends WithMembers[ComponentType] with Initializable {
 
     def cloneEquiv = new RoleMembersEquiv(this)
 
@@ -106,10 +107,12 @@ trait RolesMixin {
     override def toString: String =
       s"""Role "$name":\n${indent(selectedMembers.map(_ + "\n").mkString(""), 1)}"""
 
-    override private[mpmens] def _init(stage: Int) = {
-      super._init(stage)
+    override private[mpmens] def _init(stage: InitStages, config: Config): Unit = {
+      super._init(stage, config)
+      allMembers._init(stage, config)
+
       stage match {
-        case 1 =>
+        case InitStages.RulesCreation =>
           allMembers.mapChildToParent(this)
         case _ =>
       }
@@ -118,6 +121,8 @@ trait RolesMixin {
 
 
   trait WithRoles extends Initializable {
+    this: WithConfig =>
+
     private[mpmens] val _roles: mutable.Map[String, Role[Universe#Component]] = mutable.Map.empty[String, Role[Universe#Component]]
 
     def role[ComponentType <: Universe#Component](items: RoleMembers[ComponentType]): Role[ComponentType] = role(randomName, items)
@@ -127,11 +132,9 @@ trait RolesMixin {
       role
     }
 
-    def role[ComponentType <: Universe#Component](name: String): Role[ComponentType] = _roles(name).asInstanceOf[Role[ComponentType]]
-
-    override private[mpmens] def _init(stage: Int) = {
-      super._init(stage)
-      _roles.values.foreach(_._init(stage))
+    override private[mpmens] def _init(stage: InitStages, config: Config): Unit = {
+      super._init(stage, config)
+      _roles.values.foreach(_._init(stage, config))
     }
   }
 

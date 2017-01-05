@@ -15,7 +15,7 @@ abstract class Logical {
 }
 
 /** Result of an expression that can be directly instantiated (i.e. does not have to be represented as a variable in the solver. */
-case class LogicalBoolean(value: Boolean) extends Logical {
+private[mpmens] case class LogicalBoolean(value: Boolean) extends Logical {
   protected type ValueType = Boolean
 
   override def &&(other: Logical): Logical = if (!value) this else other
@@ -26,7 +26,7 @@ case class LogicalBoolean(value: Boolean) extends Logical {
 }
 
 /** Common functionality for LogicalLogOp and LogicalBoolVar. */
-abstract class LogicalWithILogic extends Logical {
+private[mpmens] abstract class LogicalWithILogic extends Logical {
   protected type ValueType <: ILogical
 
   override def &&(other: Logical): Logical = other match {
@@ -45,14 +45,14 @@ abstract class LogicalWithILogic extends Logical {
 }
 
 /** And/Or tree of clauses. This is used to represent clauses about membership of a component. */
-case class LogicalLogOp(value: LogOp) extends LogicalWithILogic {
+private[mpmens] case class LogicalLogOp(value: LogOp) extends LogicalWithILogic {
   protected type ValueType = LogOp
 
   override def unary_!(): Logical = LogicalLogOp(LogOp.nand(value))
 }
 
 /** Boolean variable clause. This is used to represent reified constraints (e.g. cardinality). */
-case class LogicalBoolVar(value: BoolVar) extends LogicalWithILogic {
+private[mpmens] case class LogicalBoolVar(value: BoolVar) extends LogicalWithILogic {
   protected type ValueType = BoolVar
 
   override def unary_!(): Logical = LogicalBoolVar(value.not)

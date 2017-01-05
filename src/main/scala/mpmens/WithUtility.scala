@@ -1,5 +1,7 @@
 package mpmens
 
+import mpmens.InitStages.InitStages
+
 trait WithUtility extends Initializable {
   private var _utilityFun: Option[() => Integer] = None
 
@@ -22,11 +24,11 @@ trait WithUtility extends Initializable {
     case None => 0
   }
 
-  override private[mpmens] def _init(stage: Int) = {
-    super._init(stage)
+  override private[mpmens] def _init(stage: InitStages, config: Config): Unit = {
+    super._init(stage, config)
 
     stage match {
-      case 0 =>
+      case InitStages.VariableCreation =>
         _utility = null
       case _ =>
     }
