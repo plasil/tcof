@@ -1,6 +1,6 @@
 package rcrs
 
-import mpmens.Universe
+import mpmens._
 import mpmens.traits.map2d.{Map2DTrait, Position, PositionAware}
 import rcrs.traits.map2d.RCRSNodeStatus
 
@@ -26,7 +26,7 @@ class RescueScenario extends Universe with /* RCRSConnectorTrait with */ Map2DTr
     object Exploration extends State
     object ColisionAvoidance extends State
 
-    val oper = states(Exploration, ColisionAvoidance)
+    val oper = statesExclusive(Exploration, ColisionAvoidance)
 
     constraints(
       oper.contains(Exploration) -> (explorationZone != null)
@@ -118,7 +118,7 @@ object Test {
     println("System initialized")
 
     while (scenario.rootEnsemble.solve()) {
-      println(scenario.toString)
+      println(scenario.rootEnsemble.solution.toString)
     }
 
     // scenario.commit()

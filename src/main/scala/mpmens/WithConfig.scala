@@ -13,6 +13,7 @@ trait WithConfig extends Initializable {
     stage match {
       case InitStages.ConfigPropagation =>
         _config = config
+      case _ =>
     }
   }
 }

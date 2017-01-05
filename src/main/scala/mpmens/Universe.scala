@@ -1,8 +1,12 @@
 package mpmens
 
 
-abstract class Universe extends EnsemblesMixin with ComponentsMixin with RootEnsembleMixin with RolesMixin with EnsembleGroupsMixin with StateSetsMixin with ActionsMixin {
+abstract class Universe {
   private var _universe = Seq.empty[Component]
   def components_= (univ: Seq[Component]): Unit = _universe = univ
   def components: Seq[Component] = _universe
+
+  protected def root[EnsembleType <: RootEnsemble](builder: => EnsembleType): RootEnsembleAnchor[EnsembleType] = {
+    new RootEnsembleAnchor(builder _)
+  }
 }

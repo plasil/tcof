@@ -22,6 +22,7 @@ trait WithUtility extends Initializable {
   def solutionUtility: Int = _utility match {
     case Some(value) => value.solutionValue
     case None => 0
+    case null => 0
   }
 
   override private[mpmens] def _init(stage: InitStages, config: Config): Unit = {
