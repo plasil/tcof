@@ -26,7 +26,7 @@ trait ActionsMixin {
     this: Ensemble =>
 
     def executeActions(): Unit = {
-      for (group <- ensembleGroups.values) {
+      for (group <- _ensembleGroups.values) {
         group.selectedMembers.foreach(_.executeActions())
       }
 

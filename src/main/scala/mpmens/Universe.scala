@@ -3,7 +3,7 @@ package mpmens
 import org.chocosolver.solver.Model
 
 
-class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin with RoleMembersMixin with ImplicitsMixin with RolesMixin with EnsembleGroupsMixin with EnsemblesMixin with ComponentsMixin with ActionsMixin{
+abstract class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin with ImplicitsMixin with RolesMixin with EnsembleGroupsMixin with StateSetsMixin with EnsemblesMixin with ComponentsMixin with RootEnsembleMixin with ActionsMixin {
   uniThis =>
 
   trait SystemDelegates extends WithSystemDelegates {
@@ -11,31 +11,8 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
     def solverModel: Model = uniThis.solverModel
   }
 
-  /** Internal method used in pretty-printing solving results */
-  private[mpmens] def indent(str: String, level: Int) = str.lines.map("  " * level + _).mkString("\n") + (if (str.endsWith("\n")) "\n" else "")
-
-  private var randomNameIdx = 0
-  private[mpmens] def randomName = {
-    val name = f"<$randomNameIdx%06d>"
-    randomNameIdx = randomNameIdx + 1
-    name
-  }
-
-  def ensembles[EnsembleType <: Ensemble](ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ensFirst, ensRest : _*)
-  def ensembles[EnsembleType <: Ensemble](ens: Iterable[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(ens)
-  def ensembles[EnsembleType <: Ensemble](name: String, ensFirst: EnsembleType, ensRest: EnsembleType*): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name, ensFirst, ensRest : _*)
-  def ensembles[EnsembleType <: Ensemble](name: String, ens: Iterable[EnsembleType]): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name, ens)
-  def ensembles[EnsembleType <: Ensemble](name: String): EnsembleGroup[EnsembleType] = rootEnsemble.ensembles(name)
-  def utility_= (cst: Integer): Unit = rootEnsemble.utility = cst
-  def utility: Option[Integer] = rootEnsemble.utility
-  def membership(clause: Logical): Unit = rootEnsemble.membership(clause)
-  def actions(act: => Unit) = rootEnsemble.actions(act _)
-
-  private var rootEnsembleInit: () => Unit = _
-
-  def system(initFun: => Unit): Unit = {
-    rootEnsembleInit = initFun _
-  }
+  /** Model used by the solver. */
+  private[mpmens] var solverModel: Model = null
 
   /** Upper bound for integer variables of the solver */
   private[mpmens] val IntMaxValue = 10000 // IntVar.MAX_INT_BOUND
@@ -44,42 +21,24 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
 
   private[mpmens] def newIntVar = solverModel.intVar(IntMinValue, IntMaxValue)
 
-  /** Model used by the solver. */
-  private[mpmens] def solverModel = rootEnsemble.solverModel
+  private[mpmens] val InitStages = 2
 
-  class RootEnsemble extends Ensemble("<root>") {
-    // Though ugly, this is needed for the delegates above (ensembles, utility) call this instance from the rootEnsembleInit below.
-    rootEnsemble = this
-    private[mpmens] val solverModel = new Model()
-
-    rootEnsembleInit()
-
-    for (group <- ensembleGroups.values) {
-      group.allMembers.mapEnsembleActivationRecursive(group)
-    }
-
-    if (utility.isEmpty) {
-      utility = IntegerUtils.sum(ensembleGroups.values.map(_.sum(_.utility.getOrElse(IntegerInt(0)))))
-    }
-
-    utility match {
-      case Some(IntegerIntVar(utilityVar)) => solverModel.setObjective(Model.MAXIMIZE, utilityVar)
-      case _ =>
-    }
-
-    LogicalUtils.post(ensembleClause)
-  }
-
-  private var rootEnsemble: RootEnsemble = _
 
   private var _universe = Seq.empty[Component]
-
   def components_= (univ: Seq[Component]): Unit = _universe = univ
-
   def components: Seq[Component] = _universe
 
   def init(): Unit = {
-    new RootEnsemble()
+    rootEnsemble = root
+
+    // This is not needed per se because ensembles are discarded in each step anyway. However, component are not. We keep it here for uniformity with components.
+    solverModel = new Model()
+    for (stage <- 0 until InitStages) {
+      rootEnsemble._init(stage)
+      components.foreach(_._init(stage))
+    }
+
+    println(solverModel)
   }
 
   def solve(): Boolean = {
@@ -93,5 +52,7 @@ class Universe extends LogicalMixin with IntegerMixin with WithMembersUtilsMixin
 
   def solutionUtility: Int = rootEnsemble.solutionUtility
 
-  override def toString: String = rootEnsemble.toString
+  override def toString: String = rootEnsemble.toString + "\n" + components.mkString("\n")
+
+  def root: RootEnsemble
 }

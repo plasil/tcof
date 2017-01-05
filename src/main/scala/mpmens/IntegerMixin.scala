@@ -83,22 +83,51 @@ trait IntegerMixin {
   private[mpmens] case class IntegerInt(value: Int) extends Integer {
     protected type ValueType = Int
 
-    def solutionValue: Int = value
+    override def solutionValue: Int = value
 
-    def +(other: Integer): Integer = other match {
+    override def +(other: Integer): Integer = other match {
       case IntegerInt(otherValue) => IntegerInt(value + otherValue)
       case IntegerIntVar(otherValue) => addIntAndIntVar(value, otherValue)
     }
+
+    private def revRelOp(num: Integer, revOp: String, revFun: (Int, Int) => Boolean) = {
+      num match {
+        case i: IntegerInt => LogicalBoolean(revFun(i.value, value))
+        case iVar: IntegerIntVar => LogicalBoolVar(solverModel.arithm(iVar.value, revOp, value).reify())
+      }
+    }
+
+    override def ==(num: Integer): Logical = revRelOp(num, "=", (x, y) => x == y)
+    override def !=(num: Integer): Logical = revRelOp(num, "!=", (x, y) => x != y)
+    override def <(num: Integer): Logical = revRelOp(num, ">", (x, y) => x > y)
+    override def >(num: Integer): Logical = revRelOp(num, "<", (x, y) => x < y)
+    override def <=(num: Integer): Logical = revRelOp(num, ">=", (x, y) => x >= y)
+    override def >=(num: Integer): Logical = revRelOp(num, "<=", (x, y) => x <= y)
   }
 
   private[mpmens] case class IntegerIntVar(value: IntVar) extends Integer {
     protected type ValueType = IntVar
 
-    def solutionValue: Int = if (value.isInstantiated) value.getValue else 0
+    override def solutionValue: Int = if (value.isInstantiated) value.getValue else 0
 
-    def +(other: Integer): Integer = other match {
+    override def +(other: Integer): Integer = other match {
       case IntegerInt(otherValue) => addIntAndIntVar(otherValue, value)
       case IntegerIntVar(otherValue) => addIntVarAndIntVar(value, otherValue)
     }
+
+    private def relOp(num: Integer, op: String) = {
+      num match {
+        case i: IntegerInt => LogicalBoolVar(solverModel.arithm(value, op, i.value).reify())
+        case iVar: IntegerIntVar => LogicalBoolVar(solverModel.arithm(value, op, iVar.value).reify())
+      }
+    }
+
+    override def ==(num: Integer): Logical = relOp(num, "=")
+    override def !=(num: Integer): Logical = relOp(num, "!=")
+    override def <(num: Integer): Logical = relOp(num, "<")
+    override def >(num: Integer): Logical = relOp(num, ">")
+    override def <=(num: Integer): Logical = relOp(num, "<=")
+    override def >=(num: Integer): Logical = relOp(num, ">=")
+
   }
 }

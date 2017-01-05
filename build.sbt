@@ -1,4 +1,3 @@
-
 name := "mpm-ensembles"
 
 version := "1.0"
@@ -6,6 +5,7 @@ version := "1.0"
 scalaVersion := "2.12.0"
 
 libraryDependencies ++= Seq(
+
   // Required for mpmens
   "org.scala-lang" % "scala-reflect" % "2.12.0",
   "org.choco-solver" % "choco-solver" % "4.0.0",
@@ -23,9 +23,9 @@ libraryDependencies ++= Seq(
   "org.scodec" %% "scodec-core" % "1.10.3",
   "org.scodec" %% "scodec-bits" % "1.1.2"
 
-  // unit tests
-//  "org.scalactic" %% "scalactic" % "3.0.1",
-//  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+  // Unit tests
+  // "org.scalactic" %% "scalactic" % "3.0.1",
+  // "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
 cleanFiles += (baseDirectory(_ / "precomputed.data")).value

@@ -2,22 +2,22 @@ package mpmens
 
 import org.chocosolver.solver.variables.SetVar
 
-trait WithMembers[+MemberType] extends WithSystemDelegates {
+trait WithMembers[+MemberType] extends WithSystemDelegates with Initializable {
 
   private[mpmens] def allMembers: Members[MemberType]
 
-  private[mpmens] val allMembersVar: SetVar = solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
+  private[mpmens] var allMembersVar: SetVar = null
 
-  class Cardinality {
-    def ==(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, "=", num).reify())
-    def !=(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, "!=", num).reify())
-    def <(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, "<", num).reify())
-    def >(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, ">", num).reify())
-    def <=(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, "<=", num).reify())
-    def >=(num: Int): LogicalBoolVar = LogicalBoolVar(solverModel.arithm(allMembersVar.getCard, ">=", num).reify())
+  override private[mpmens] def _init(stage: Int) = {
+    super._init(stage)
+    stage match {
+      case 0 =>
+        allMembersVar = solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
+      case _ =>
+    }
   }
 
-  def cardinality: Cardinality = new Cardinality
+  def cardinality: Integer = new universe.IntegerIntVar(allMembersVar.getCard)
 
   def contains(member: Any): Logical = some((x) => LogicalBoolean(x == member))
 

@@ -4,7 +4,6 @@ import rcrs.comm._
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
 import rescuecore2.standard.entities.{Building, StandardEntity, StandardEntityURN}
-import rescuecore2.standard.messages.AKSpeak
 import rescuecore2.worldmodel.{ChangeSet, EntityID}
 
 import scala.collection.mutable
@@ -21,13 +20,15 @@ class CentralAgent extends ScalaAgent {
 
   val scenario = new RescueScenario
 
+
   override protected def postConnect() {
     Logger.info(s"Central agent connected")
     super.postConnect()
 
-    scenario.agent = this
+//    scenario.agent = this
     scenario.traitInit()
   }
+
 
   override def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
     Logger.info(s"CentralAgent: Think called at time $time")
@@ -37,7 +38,7 @@ class CentralAgent extends ScalaAgent {
       Logger.info("Subscribing to channels")
       sendSubscribe(time, Constants.TO_STATION)
     }
-
+/*
     import scenario.{map, map2dToRcrsMap2D}
 
     if (time >= ignoreAgentCommandsUntil) {
@@ -83,34 +84,32 @@ class CentralAgent extends ScalaAgent {
 
     }
 
-    /*
-        RescueScenario.rcrsTraitStep(time: Int, changes: ChangeSet, heard: List[Command])
+    scenario.rcrsTraitStep(time: Int, changes: ChangeSet, heard: List[Command])
 
+    scenario.components = List(
+      new scenario.FireBrigade(Position(391738, 3370)),
+      new scenario.FireBrigade(Position(424810, 354780)),
+      new scenario.FireBrigade(Position(48738, 145870)),
+      new scenario.FireBrigade(Position(187810, 248325)),
+      new scenario.AmbulanceTeam(Position(128728, 82480)),
+      new scenario.AmbulanceTeam(Position(24810, 248480)),
+      new scenario.AmbulanceTeam(Position(148738, 268010)),
+      new scenario.AmbulanceTeam(Position(324840, 48325)),
+      new scenario.PoliceForce(Position(454848, 305548)),
+      new scenario.PoliceForce(Position(68720, 218880)),
+      new scenario.PoliceForce(Position(78148, 105870)),
+      new scenario.PoliceForce(Position(123580, 38875))
+    )
 
-        RescueScenario.components = List(
-          new RescueScenario.FireBrigade(Position(391738, 3370)),
-          new RescueScenario.FireBrigade(Position(424810, 354780)),
-          new RescueScenario.FireBrigade(Position(48738, 145870)),
-          new RescueScenario.FireBrigade(Position(187810, 248325)),
-          new RescueScenario.AmbulanceTeam(Position(128728, 82480)),
-          new RescueScenario.AmbulanceTeam(Position(24810, 248480)),
-          new RescueScenario.AmbulanceTeam(Position(148738, 268010)),
-          new RescueScenario.AmbulanceTeam(Position(324840, 48325)),
-          new RescueScenario.PoliceForce(Position(454848, 305548)),
-          new RescueScenario.PoliceForce(Position(68720, 218880)),
-          new RescueScenario.PoliceForce(Position(78148, 105870)),
-          new RescueScenario.PoliceForce(Position(123580, 38875))
-        )
+    scenario.init()
+    println("RescueScenario initialized")
 
-        RescueScenario.init()
-        println("RescueScenario initialized")
+    while (scenario.solve()) {
+      println(scenario.toString)
+    }
 
-        while (RescueScenario.solve()) {
-          println(RescueScenario.toString)
-        }
-
-        RescueScenario.commit()
-    */
+    scenario.commit()
+*/
   }
 
   override protected def getRequestedEntityURNs: List[StandardEntityURN] = List(StandardEntityURN.FIRE_STATION, StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE)
