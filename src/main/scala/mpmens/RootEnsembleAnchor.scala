@@ -3,7 +3,7 @@ package mpmens
 class RootEnsembleAnchor[EnsembleType <: RootEnsemble] private[mpmens](val builder: () => EnsembleType) {
   private var _solution: EnsembleType = _
 
-  def solution: EnsembleType = _solution
+  def instance: EnsembleType = _solution
 
   def init(): Unit = {
     _solution = builder()
@@ -18,7 +18,7 @@ class RootEnsembleAnchor[EnsembleType <: RootEnsemble] private[mpmens](val build
   def solve(): Boolean = _solution._solverModel.getSolver.solve()
 
   def commit(): Unit = {
-    solution._executeActions()
+    instance._executeActions()
   }
 }
 

@@ -179,7 +179,7 @@ class SolverModel extends Model {
       }
     }
 
-    override def ==(num: Integer): Logical = revRelOp(num, "=", (x, y) => x == y)
+    override def ===(num: Integer): Logical = revRelOp(num, "=", (x, y) => x == y)
     override def !=(num: Integer): Logical = revRelOp(num, "!=", (x, y) => x != y)
     override def <(num: Integer): Logical = revRelOp(num, ">", (x, y) => x > y)
     override def >(num: Integer): Logical = revRelOp(num, "<", (x, y) => x < y)
@@ -204,7 +204,7 @@ class SolverModel extends Model {
       }
     }
 
-    override def ==(num: Integer): Logical = relOp(num, "=")
+    override def ===(num: Integer): Logical = relOp(num, "=")
     override def !=(num: Integer): Logical = relOp(num, "!=")
     override def <(num: Integer): Logical = relOp(num, "<")
     override def >(num: Integer): Logical = relOp(num, ">")

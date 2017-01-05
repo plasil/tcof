@@ -8,7 +8,7 @@ class StateSetExclusive[+StateType <: State](name: String, allMembers: StateSetM
 
     stage match {
       case InitStages.RulesCreation =>
-        _solverModel.arithm(allMembersVar.getCard, "=", 0).post()
+        _solverModel.arithm(allMembersVar.getCard, "=", 1).post()
       case _ =>
     }
   }
