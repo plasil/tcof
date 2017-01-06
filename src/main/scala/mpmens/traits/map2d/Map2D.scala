@@ -1,43 +1,28 @@
 package mpmens.traits.map2d
 
-class Map2D[NodeStatusType] extends WithShortestPath with WithAreaExploration {
-  class Node private[map2d](val center: Position) {
-    private[map2d] var _neighbors = Map.empty[Node, Edge]
-    def neighbors: Map[Node, Edge] = _neighbors
 
-    var lastVisitTime = Int.MinValue
 
-    var status: NodeStatusType = _
 
-    override def toString() = s"Node(${lastVisitTime})"
-  }
 
-  class Edge private[map2d](val from: Node, val to: Node, private var _cost: Double) {
-    def cost = _cost
-    def cost_=(value: Double) = {
-      _cost = value
-      ShortestPath.invalidateCache()
-    }
-  }
+class Map2D[NodeStatusType] extends WithShortestPath[NodeStatusType] with WithAreaExploration[NodeStatusType] {
+  private var _nodes = List.empty[Node[NodeStatusType]]
+  private var _edges = List.empty[Edge[NodeStatusType]]
 
-  private var _nodes = List.empty[Node]
-  private var _edges = List.empty[Edge]
+  def nodes: List[Node[NodeStatusType]] = _nodes
 
-  def nodes: List[Node] = _nodes
+  def edges: List[Edge[NodeStatusType]] = _edges
 
-  def edges: List[Edge] = _edges
-
-  def addNode(center: Position): Node = {
-    val node = new Node(center)
+  def addNode(center: Position): Node[NodeStatusType] = {
+    val node = new Node(this, center)
     _nodes = _nodes :+ node
     node
   }
 
-  def addDirectedEdge(from: Node, to: Node, cost: Double): Edge = from._neighbors.get(to) match {
+  def addDirectedEdge(from: Node[NodeStatusType], to: Node[NodeStatusType], cost: Double): Edge[NodeStatusType] = from._neighbors.get(to) match {
     case Some(edge) => edge
 
     case None =>
-      val edge = new Edge(from, to, cost)
+      val edge = new Edge(this, from, to, cost)
       _edges = _edges :+ edge
       from._neighbors = from._neighbors + (to -> edge)
       edge

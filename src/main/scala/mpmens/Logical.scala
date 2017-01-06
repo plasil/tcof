@@ -9,4 +9,5 @@ abstract class Logical {
   def ||(other: Logical): Logical
   def unary_!(): Logical
   def ->(other: Logical): Logical = !this || other
+  def <->(other: Logical): Logical = this -> other && other -> this
 }

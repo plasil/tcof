@@ -1,6 +1,6 @@
 package rcrs.traits.map2d
 
-import mpmens.traits.map2d.{Map2D, Map2DTrait, Position}
+import mpmens.traits.map2d.{Map2D, Map2DTrait, Node, Position}
 import rcrs.traits.RCRSTrait
 import rescuecore2.standard.entities.Area
 import rescuecore2.worldmodel.EntityID
@@ -20,23 +20,23 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
   }
 
   class RCRSMap2D {
-    private val areaIdToNode = mutable.Map.empty[EntityID, map.Node]
-    private val nodeToArea = mutable.Map.empty[map.Node, Area]
+    private val areaIdToNode = mutable.Map.empty[EntityID, Node[RCRSNodeStatus]]
+    private val nodeToArea = mutable.Map.empty[Node[RCRSNodeStatus], Area]
 
-    def toNode(areaId: EntityID): map.Node = areaIdToNode(areaId)
-    def toArea(node: map.Node): Area = nodeToArea(node)
+    def toNode(areaId: EntityID): Node[RCRSNodeStatus] = areaIdToNode(areaId)
+    def toArea(node: Node[RCRSNodeStatus]): Area = nodeToArea(node)
 
-    def toAreaID(path: List[map.Node]): List[EntityID] = path.map(toArea(_).getID)
+    def toAreaID(path: List[Node[RCRSNodeStatus]]): List[EntityID] = path.map(toArea(_).getID)
 
     def currentNode = areaIdToNode(agent.currentAreaId)
 
-    val lineOfSight = mutable.Map.empty[map.Node, Set[map.Node]]
+    val lineOfSight = mutable.Map.empty[Node[RCRSNodeStatus], Set[Node[RCRSNodeStatus]]]
 
-    val nodeStatus = mutable.Map.empty[map.Node, RCRSNodeStatus]
+    val nodeStatus = mutable.Map.empty[Node[RCRSNodeStatus], RCRSNodeStatus]
 
     val closeAreaIDs = RCRSMapStatic.closeAreaIDs
 
-    def getWalkedPath(origin: map.Node, path: List[map.Node], history: List[Position]): List[map.Node] = {
+    def getWalkedPath(origin: Node[RCRSNodeStatus], path: List[Node[RCRSNodeStatus]], history: List[Position]): List[Node[RCRSNodeStatus]] = {
       val histAreas = history.map( pos =>
         agent.model.getObjectsInRange(pos.x.toInt, pos.y.toInt, 0).asScala
         .collectFirst{ case area: Area if area.getShape.contains(pos.x, pos.y) => area }.get
@@ -49,7 +49,7 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
       var pathArea = toArea(origin)
       var remainingPath = path
       var remainingAreas = path.map(toArea)
-      val walkedPath = mutable.ListBuffer.empty[map.Node]
+      val walkedPath = mutable.ListBuffer.empty[Node[RCRSNodeStatus]]
 
       while (histIterator.hasNext) {
         var histArea = histIterator.next
@@ -112,11 +112,10 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
     }
 
     object RCRSAreaExploration {
-      def apply(origin: map.Node, toExplore: Set[map.Node]): map.AreaExploration = map.AreaExploration(origin, toExplore, lineOfSight)
+      def apply(origin: Node[RCRSNodeStatus], toExplore: Set[Node[RCRSNodeStatus]]): map.AreaExploration = map.AreaExploration(origin, toExplore, lineOfSight)
     }
-
   }
 
+
   implicit def map2dToRcrsMap2D(value: Map2D[RCRSNodeStatus]) = rcrsMap
-  implicit def areaExplorationToRcrsAreaExploration(value: map.AreaExploration.type) = rcrsMap.RCRSAreaExploration
 }

@@ -10,4 +10,5 @@ trait RCRSTrait extends Trait {
 
   def rcrsTraitStep(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
   }
+
 }

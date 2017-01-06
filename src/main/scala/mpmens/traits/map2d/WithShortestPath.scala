@@ -4,11 +4,11 @@ import de.ummels.prioritymap.PriorityMap
 
 import scala.collection.mutable
 
-trait WithShortestPath {
-  this: Map2D[_] =>
+trait WithShortestPath[NodeStatusType] {
+  this: Map2D[NodeStatusType] =>
 
   object ShortestPath {
-    private val cache = mutable.Map.empty[Node, (List[Node], Map[Node, Double], Map[Node, Node])]
+    private val cache = mutable.Map.empty[Node[NodeStatusType], (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]])]
     private var epoch = 0
 
     def invalidateCache(): Unit = {
@@ -18,18 +18,17 @@ trait WithShortestPath {
       }
     }
 
-    def apply(source: Node): ShortestPath = new ShortestPath(source)
+    def apply(source: Node[NodeStatusType]): ShortestPath = new ShortestPath(source)
   }
 
-  class ShortestPath(val origin: Node) {
-    //, val stoppingCondition: ((Node, Double)) => Boolean = (_) => false) {
+  class ShortestPath(val origin: Node[NodeStatusType]) {
     val (nodesByDistance, distances, predecessors) = compute(origin)
 
     // Adapted from https://github.com/ummels/dijkstra-in-scala/blob/master/src/main/scala/de/ummels/dijkstra/DijkstraPriority.scala
     // Original version - Copyright (c) 2015, Michael Ummels <michael@ummels.de>
-    private def compute(origin: Node): (List[Node], Map[Node, Double], Map[Node, Node]) = {
-      def go(active: PriorityMap[Node, Double], nodesByDistance: List[Node], distances: Map[Node, Double], predecessors: Map[Node, Node]):
-      (List[Node], Map[Node, Double], Map[Node, Node]) =
+    private def compute(origin: Node[NodeStatusType]): (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]]) = {
+      def go(active: PriorityMap[Node[NodeStatusType], Double], nodesByDistance: List[Node[NodeStatusType]], distances: Map[Node[NodeStatusType], Double], predecessors: Map[Node[NodeStatusType], Node[NodeStatusType]]):
+      (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]]) =
         if (active.isEmpty)
           (nodesByDistance.reverse.tail, distances, predecessors)
         else {
@@ -43,7 +42,7 @@ trait WithShortestPath {
           go(active.tail ++ neighbours, node :: nodesByDistance, distances + (node -> cost), predecessors ++ preds)
         }
 
-      var result: (List[Node], Map[Node, Double], Map[Node, Node]) = null
+      var result: (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]]) = null
       var epoch = 0
 
       synchronized {
@@ -56,7 +55,7 @@ trait WithShortestPath {
       }
 
       if (result == null) {
-        result = go(PriorityMap(origin -> 0), List.empty[Node], Map.empty[Node, Double], Map.empty[Node, Node])
+        result = go(PriorityMap(origin -> 0), List.empty[Node[NodeStatusType]], Map.empty[Node[NodeStatusType], Double], Map.empty[Node[NodeStatusType], Node[NodeStatusType]])
 
         synchronized {
           if (ShortestPath.epoch == epoch)
@@ -67,10 +66,10 @@ trait WithShortestPath {
       result
     }
 
-    def distanceTo(target: Node): Option[Double] = distances.get(target)
+    def distanceTo(target: Node[NodeStatusType]): Option[Double] = distances.get(target)
 
-    def pathTo(target: Node) = {
-      def go(current: Node, pathSoFar: List[Node] = List()): List[Node] = {
+    def pathTo(target: Node[NodeStatusType]) = {
+      def go(current: Node[NodeStatusType], pathSoFar: List[Node[NodeStatusType]] = List()): List[Node[NodeStatusType]] = {
         predecessors.get(current) match {
           case None => pathSoFar
           case Some(node) => go(node, current :: pathSoFar)

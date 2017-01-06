@@ -13,7 +13,7 @@ trait WithMembers[+MemberType] extends WithConfig with Initializable {
     super._init(stage, config)
 
     stage match {
-      case InitStages.VariableCreation =>
+      case InitStages.VarsCreation =>
         allMembersVar = _solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
       case _ =>
     }
@@ -21,7 +21,9 @@ trait WithMembers[+MemberType] extends WithConfig with Initializable {
 
   def cardinality: Integer = _solverModel.IntegerIntVar(allMembersVar.getCard)
 
-  def contains(member: Any): Logical = some((x) => LogicalBoolean(x == member))
+  def contains(member: Any): Logical = some(x => LogicalBoolean(x == member))
+  def containsOtherThan(member: Any): Logical = some(x => LogicalBoolean(x != member))
+  def containsOnly(member: Any): Logical = all(x => LogicalBoolean(x == member))
 
   def sum(fun: MemberType => Integer): Integer = _solverModel.sumBasedOnMembership(allMembersVar, allMembers.values.map(fun))
 

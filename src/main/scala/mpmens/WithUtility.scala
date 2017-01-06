@@ -29,7 +29,7 @@ trait WithUtility extends Initializable {
     super._init(stage, config)
 
     stage match {
-      case InitStages.VariableCreation =>
+      case InitStages.VarsCreation =>
         _utility = null
       case _ =>
     }

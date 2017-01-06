@@ -13,6 +13,8 @@ class RootEnsembleAnchor[EnsembleType <: RootEnsemble] private[mpmens](val build
     for (stage <- InitStages.values) {
       _solution._init(stage, config)
     }
+
+    instance._executePreActions()
   }
 
   def solve(): Boolean = _solution._solverModel.getSolver.solve()

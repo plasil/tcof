@@ -36,6 +36,8 @@ trait Component extends WithName with WithUtility with WithStateSets with WithAc
     for (stage <- InitStages.values) {
       _init(stage, config)
     }
+
+    _executePreActions()
   }
 
   def solve(): Boolean = _solverModel.getSolver.solve()
@@ -49,6 +51,6 @@ trait Component extends WithName with WithUtility with WithStateSets with WithAc
     s"""Component "$name""""
 
   def toStringWithSolution: String =
-    s"""Component "$name" (utility: $solutionUtility)\n${indent(_stateSets.values.mkString(""), 1)}"""
+    s"""Component "$name" (utility: $solutionUtility)\n${indent(_rootState.toString, 1)}"""
 
 }

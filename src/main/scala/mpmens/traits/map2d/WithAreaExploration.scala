@@ -4,11 +4,11 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait WithAreaExploration {
-  this: Map2D[_] =>
+trait WithAreaExploration[NodeStatusType] {
+  this: Map2D[NodeStatusType] =>
 
   object AreaExploration {
-    def apply(origin: Node, toExplore: Set[Node], nodesInView: Node => Iterable[Node]): AreaExploration =
+    def apply(origin: Node[NodeStatusType], toExplore: Set[Node[NodeStatusType]], nodesInView: Node[NodeStatusType] => Iterable[Node[NodeStatusType]]): AreaExploration =
       new AreaExploration(origin, toExplore, nodesInView)
   }
 
@@ -18,13 +18,13 @@ trait WithAreaExploration {
     * @param nodesToExplore List of nodes to be explored
     * @param nodesInView A function that returns nodes that can be seen from a node
     */
-  class AreaExploration(private val origin: Node, val nodesToExplore: Set[Node], val nodesInView: Node => Iterable[Node]) {
+  class AreaExploration(explorationOrigin: Node[NodeStatusType], val nodesToExplore: Set[Node[NodeStatusType]], val nodesInView: Node[NodeStatusType] => Iterable[Node[NodeStatusType]]) {
     private val exploreMaxCount = 3
     private val backtrackingMaxCount = 10000
 
-    private var assumePathWithOrigin: List[Node] = List(origin)
+    private var assumePathWithOrigin: List[Node[NodeStatusType]] = List(explorationOrigin)
 
-    private var walkedPathWithOrigin: List[Node] = List(origin)
+    private var walkedPathWithOrigin: List[Node[NodeStatusType]] = List(explorationOrigin)
 
     private var currentTask: ComputationTask = null
 
@@ -36,7 +36,7 @@ trait WithAreaExploration {
       val toExplore = dij.nodesByDistance.filter(nodesToExplore.contains(_))
 
       // Do a quick computation to have something to return now
-      var explorationPathWithOrigin: List[Node] = if (toExplore.isEmpty) localAssumePathWithOrigin else localAssumePathWithOrigin ++ dij.pathTo(toExplore.head).get
+      var explorationPathWithOrigin: List[Node[NodeStatusType]] = if (toExplore.isEmpty) localAssumePathWithOrigin else localAssumePathWithOrigin ++ dij.pathTo(toExplore.head).get
 
       var explorationPathLength: Double = _
 
@@ -45,7 +45,7 @@ trait WithAreaExploration {
       val future = Future({
         val assumePathDistance = localAssumePathWithOrigin.zip(localAssumePathWithOrigin.tail).map { case (start, end) => start.neighbors(end).cost }.sum
 
-        val adjustedToExplore = mutable.Set.empty[Node] ++ toExplore
+        val adjustedToExplore = mutable.Set.empty[Node[NodeStatusType]] ++ toExplore
         for (node <- localAssumePathWithOrigin) {
           adjustedToExplore --= nodesInView(node)
         }
@@ -59,7 +59,7 @@ trait WithAreaExploration {
         isInterrupted = true
       }
 
-      def doComputation(pathSoFarReversed: List[Node], distanceSoFar: Double, signature: String, currentNode: Node, previousNode: Node, toExplore: Set[Node], backtrackingLimit: Int): Unit = {
+      def doComputation(pathSoFarReversed: List[Node[NodeStatusType]], distanceSoFar: Double, signature: String, currentNode: Node[NodeStatusType], previousNode: Node[NodeStatusType], toExplore: Set[Node[NodeStatusType]], backtrackingLimit: Int): Unit = {
         var signatureVar = signature
         var toExploreVar = toExplore
         var currentNodeVar = currentNode
@@ -98,7 +98,7 @@ trait WithAreaExploration {
 
             var previousNodeIsIncluded = false
 
-            val neighborsToExplore = new Array[Node](exploreMaxCountWithBacktrackingLimit)
+            val neighborsToExplore = new Array[Node[NodeStatusType]](exploreMaxCountWithBacktrackingLimit)
             var neighborsToExploreLen = 0
 
             while (toExploreCount < exploreMaxCountWithBacktrackingLimit && nodesByDistanceIter.hasNext) {
@@ -165,14 +165,14 @@ trait WithAreaExploration {
       }
     }
 
-    def assume(path: List[Node]): Unit = {
+    def assume(path: List[Node[NodeStatusType]]): Unit = {
       val pathWithOrigin = walkedPathWithOrigin ++ path
       require(pathWithOrigin.startsWith(assumePathWithOrigin))
 
       assumePathWithOrigin = pathWithOrigin
     }
 
-    def walked(path: List[Node]): Unit = {
+    def walked(path: List[Node[NodeStatusType]]): Unit = {
       val pathWithOrigin = walkedPathWithOrigin ++ path
 
       if (!assumePathWithOrigin.startsWith(pathWithOrigin)) {
@@ -184,9 +184,11 @@ trait WithAreaExploration {
       walkedPathWithOrigin = pathWithOrigin
     }
 
-    def explorationPath: List[Node] = {
+    def origin: Node[NodeStatusType] = walkedPathWithOrigin.last
 
-      var result: List[Node] = null
+    def explorationPath: List[Node[NodeStatusType]] = {
+
+      var result: List[Node[NodeStatusType]] = null
 
       if (currentTask != null) {
         val currentExplorationPath = currentTask.explorationPathWithOrigin

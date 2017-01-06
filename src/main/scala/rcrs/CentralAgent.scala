@@ -1,6 +1,7 @@
 package rcrs
 
 import rcrs.comm._
+import rcrs.scenario.RescueScenario
 import rescuecore2.log.Logger
 import rescuecore2.messages.Command
 import rescuecore2.standard.entities.{Building, StandardEntity, StandardEntityURN}

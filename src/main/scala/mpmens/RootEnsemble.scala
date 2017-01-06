@@ -15,10 +15,6 @@ class RootEnsemble extends Ensemble {
 
     stage match {
       case InitStages.RulesCreation =>
-        for (group <- _ensembleGroups.values) {
-          group.allMembers.mapEnsembleActivationRecursive(group)
-        }
-
         val sm = _solverModel
         utility match {
           case Some(sm.IntegerIntVar(utilityVar)) => _solverModel.setObjective(Model.MAXIMIZE, utilityVar)
