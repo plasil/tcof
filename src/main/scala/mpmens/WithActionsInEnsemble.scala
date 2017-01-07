@@ -5,7 +5,7 @@ trait WithActionsInEnsemble extends WithActions {
 
   private[mpmens] override def _executePreActions(): Unit = {
     for (group <- _ensembleGroups.values) {
-      group.selectedMembers.foreach(_._executeActions())
+      group.allMembers.values.foreach(_._executePreActions())
     }
 
     _preActions.foreach(_())

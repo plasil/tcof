@@ -34,7 +34,7 @@ trait WithMembers[+MemberType] extends WithConfig with Initializable {
     _solverModel.existsSelected(allMembers.values.map(fun), allMembersVar)
 
   def foreachBySelection(forSelected: MemberType => Unit, forNotSelected: MemberType => Unit): Unit = {
-    val selection = allMembersVar.getValue
+    val selection = _solverModel.solution.getSetVal(allMembersVar)
     for ((member, idx) <- allMembers.values.zipWithIndex) {
       if (selection.contains(idx))
         forSelected(member)
@@ -44,14 +44,13 @@ trait WithMembers[+MemberType] extends WithConfig with Initializable {
   }
 
   def membersWithSelectionIndicator: Iterable[(Boolean, MemberType)] = {
-    val selection = allMembersVar.getValue
+    val selection = _solverModel.solution.getSetVal(allMembersVar)
     allMembers.values.zipWithIndex.map{case (member, idx) => (selection.contains(idx), member)}
   }
 
   def selectedMembers: Iterable[MemberType] = {
-    import scala.collection.JavaConverters._
     val values = allMembers.values.toIndexedSeq
-    for (idx <- allMembersVar.getValue.asScala) yield values(idx)
+    for (idx <- _solverModel.solution.getSetVal(allMembersVar)) yield values(idx)
   }
 }
 

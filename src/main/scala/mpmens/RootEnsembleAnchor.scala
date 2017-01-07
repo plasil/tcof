@@ -17,7 +17,7 @@ class RootEnsembleAnchor[EnsembleType <: RootEnsemble] private[mpmens](val build
     instance._executePreActions()
   }
 
-  def solve(): Boolean = _solution._solverModel.getSolver.solve()
+  def solve(): Boolean = _solution._solverModel.solveAndRecord()
 
   def commit(): Unit = {
     instance._executeActions()

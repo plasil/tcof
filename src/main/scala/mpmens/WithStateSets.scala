@@ -60,13 +60,16 @@ trait WithStateSets extends Initializable {
     super._init(stage, config)
 
     stage match {
-      case InitStages.VarsCreation =>
+      case InitStages.ExtraDeclarations =>
         _rootState = State("<root>", _allStates.filter(_.parent == null))
 
-        val linkedMembers = _allStates.map(s => new LinkedMember(s, s.parent, s.indexInParent))
+        val linkedMembers = _allStates.filterNot(_ == _rootState).map(s => new LinkedMember(s, s.parent, s.indexInParent))
+
         _states = new StateSetEquiv(new StateSetMembersEquiv(linkedMembers))
       case _ =>
     }
+
+    _states._init(stage, config)
 
     _allStates.foreach{
       case x: Initializable => x._init(stage, config)

@@ -11,6 +11,7 @@ class StateSetEquiv[+StateType <: State](private[mpmens] val allMembers: StateSe
       case InitStages.RulesCreation =>
         val members = allMembers.linkedMembers.zipWithIndex
         for ((member, idx) <- members) {
+
           _solverModel.ifOnlyIf(_solverModel.member(idx, allMembersVar), _solverModel.member(member.indexInParent, member.parent.allMembersVar))
         }
 

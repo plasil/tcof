@@ -13,6 +13,9 @@ import scala.collection.mutable
 trait ObservationSupport {
   this: RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus] with CurrentTimeTrait =>
 
+  /**
+    * Observes and records changes in its close vicinity. It checks the "changes" variable, which contains what the agent has seen. Based on this, it upddates the map and sends the changes to the central station.
+    */
   trait Observation {
     this: MobileUnitComponent#MobileUnit =>
 

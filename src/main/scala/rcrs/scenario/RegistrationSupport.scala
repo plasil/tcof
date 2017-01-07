@@ -8,6 +8,9 @@ import rescuecore2.log.Logger
 trait RegistrationSupport {
   this: RCRSConnectorTrait with CurrentTimeTrait =>
 
+  /**
+    * Obtains a shortId from the central server.
+    */
   trait Registration {
     this: MobileUnitComponent#MobileUnit =>
 

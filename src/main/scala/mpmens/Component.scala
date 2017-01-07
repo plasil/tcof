@@ -40,7 +40,7 @@ trait Component extends WithName with WithUtility with WithStateSets with WithAc
     _executePreActions()
   }
 
-  def solve(): Boolean = _solverModel.getSolver.solve()
+  def solve(): Boolean = _solverModel.solveAndRecord()
 
   def commit(): Unit = {
     _executeActions()
@@ -51,6 +51,6 @@ trait Component extends WithName with WithUtility with WithStateSets with WithAc
     s"""Component "$name""""
 
   def toStringWithSolution: String =
-    s"""Component "$name" (utility: $solutionUtility)\n${indent(_rootState.toString, 1)}"""
+    s"""Component "$name" (utility: $solutionUtility)${indent(_rootState.toString, 1)}"""
 
 }

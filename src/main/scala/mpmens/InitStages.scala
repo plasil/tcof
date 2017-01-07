@@ -3,5 +3,5 @@ package mpmens
 object InitStages extends Enumeration {
   type InitStages = Value
 
-  val ConfigPropagation, VarsCreation, RulesCreation = Value
+  val ExtraDeclarations, ConfigPropagation, VarsCreation, RulesCreation = Value
 }

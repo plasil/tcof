@@ -1,8 +1,8 @@
 package mpmens
 
-import org.chocosolver.solver.Model
 import org.chocosolver.solver.constraints.nary.cnf.{ILogical, LogOp}
 import org.chocosolver.solver.variables.{IntVar, SetVar}
+import org.chocosolver.solver.{Model, Solution}
 
 import scala.collection.mutable
 
@@ -211,5 +211,16 @@ class SolverModel extends Model {
     override def <=(num: Integer): Logical = relOp(num, "<=")
     override def >=(num: Integer): Logical = relOp(num, ">=")
   }
-  
+
+  private[mpmens] var solution = new Solution(this)
+
+  def solveAndRecord(): Boolean = {
+    val result = getSolver.solve()
+
+    if (result) {
+      solution.record()
+    }
+
+    result
+  }
 }

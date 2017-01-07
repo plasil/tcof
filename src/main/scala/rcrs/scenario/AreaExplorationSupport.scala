@@ -30,6 +30,9 @@ trait AreaExplorationSupport {
     val yTileSize = 200000
   }
 
+  /**
+    * Follows the exploration path to traverse the assigned map zone (in variable areaExplorationAssignedZone)
+    */
   trait AreaExploration {
 
     this: MobileUnitComponent#MobileUnit =>
@@ -60,7 +63,9 @@ trait AreaExplorationSupport {
       map.RCRSAreaExploration
 
       if (areaExploration == null || areaExplorationCurrentZone != areaExplorationAssignedZone) {
+        areaExplorationCurrentZone = areaExplorationAssignedZone
         areaExploration = map.RCRSAreaExploration(map.currentNode, areaExplorationAssignedZone.toExplore)
+
       } else {
         val path = areaExploration.explorationPath
         val history = agentAs[Human].me.getPositionHistory.toList.grouped(2).map{ case List(x,y) => Position(x,y) }.toList

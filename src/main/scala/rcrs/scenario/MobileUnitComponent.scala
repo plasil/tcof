@@ -8,12 +8,18 @@ trait MobileUnitComponent {
 
   abstract class MobileUnit(var position: Position) extends Component with PositionAware with Registration with AreaExploration with Observation {
 
-    val Operation = StateOr(Register, AreaExploration)
+    val Stopped = State
+
+    val Operation = StateOr(Register, AreaExploration, Stopped)
+
+    constraints(
+      Operation
+    )
 
     utility(
       states.sum {
-        case Register => 2
-        case AreaExploration => 2
+        case Observation => 1
+        case AreaExploration => 1
       }
     )
 
