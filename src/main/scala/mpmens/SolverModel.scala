@@ -190,7 +190,7 @@ class SolverModel extends Model {
   private[mpmens] case class IntegerIntVar(value: IntVar) extends Integer {
     protected type ValueType = IntVar
 
-    override def solutionValue: Int = if (value.isInstantiated) value.getValue else 0
+    override def solutionValue: Int = solution.getIntVal(value)
 
     override def +(other: Integer): Integer = other match {
       case IntegerInt(otherValue) => addIntAndIntVar(otherValue, value)
@@ -211,6 +211,7 @@ class SolverModel extends Model {
     override def <=(num: Integer): Logical = relOp(num, "<=")
     override def >=(num: Integer): Logical = relOp(num, ">=")
   }
+
 
   private[mpmens] var solution = new Solution(this)
 

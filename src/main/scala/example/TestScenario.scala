@@ -151,6 +151,7 @@ object TestScenario {
 
     scenario.rootEnsemble.commit()
 
+    println(scenario.rootEnsemble.instance.solutionUtility)
 /*
     fb.init()
 

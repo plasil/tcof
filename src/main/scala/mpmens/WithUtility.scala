@@ -3,6 +3,7 @@ package mpmens
 import mpmens.InitStages.InitStages
 
 trait WithUtility extends Initializable {
+
   private var _utilityFun: Option[() => Integer] = None
 
   def utility(util: => Integer): Unit = {
