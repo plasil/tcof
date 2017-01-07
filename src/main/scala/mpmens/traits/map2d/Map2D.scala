@@ -1,9 +1,5 @@
 package mpmens.traits.map2d
 
-
-
-
-
 class Map2D[NodeStatusType] extends WithShortestPath[NodeStatusType] with WithAreaExploration[NodeStatusType] {
   private var _nodes = List.empty[Node[NodeStatusType]]
   private var _edges = List.empty[Edge[NodeStatusType]]
@@ -18,13 +14,14 @@ class Map2D[NodeStatusType] extends WithShortestPath[NodeStatusType] with WithAr
     node
   }
 
-  def addDirectedEdge(from: Node[NodeStatusType], to: Node[NodeStatusType], cost: Double): Edge[NodeStatusType] = from._neighbors.get(to) match {
+  def addDirectedEdge(from: Node[NodeStatusType], to: Node[NodeStatusType], cost: Double): Edge[NodeStatusType] = from._outNeighbors.get(to) match {
     case Some(edge) => edge
 
     case None =>
       val edge = new Edge(this, from, to, cost)
       _edges = _edges :+ edge
-      from._neighbors = from._neighbors + (to -> edge)
+      from._outNeighbors = from._outNeighbors + (to -> edge)
+      to._inNeighbors = to._inNeighbors + (from -> edge)
       edge
   }
 }

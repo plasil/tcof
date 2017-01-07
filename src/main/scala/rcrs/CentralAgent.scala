@@ -27,7 +27,7 @@ class CentralAgent extends ScalaAgent {
     super.postConnect()
 
 //    scenario.agent = this
-    scenario.traitInit()
+    scenario.init()
   }
 
 

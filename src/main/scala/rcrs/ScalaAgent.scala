@@ -23,7 +23,7 @@ abstract class ScalaAgent extends RCRSTrait {
   val agent = this
 
   protected def postConnect(): Unit = {
-    traitInit()
+    init()
   }
 
   protected def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {

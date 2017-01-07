@@ -13,8 +13,8 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
 
   val rcrsMap: RCRSMap2D = new RCRSMap2D
 
-  override def traitInit(): Unit = {
-    super.traitInit()
+  override def init(): Unit = {
+    super.init()
 
     rcrsMap.populate()
   }
@@ -111,9 +111,7 @@ trait RCRSMapAdapterTrait extends RCRSTrait {
       lineOfSight ++= RCRSMapStatic.lineOfSight.map { case (area, areasInSight) => ( toNode(area) -> areasInSight.map(toNode)) }
     }
 
-    object RCRSAreaExploration {
-      def apply(origin: Node[RCRSNodeStatus], toExplore: Set[Node[RCRSNodeStatus]]): map.AreaExploration = map.AreaExploration(origin, toExplore, lineOfSight)
-    }
+    def rcrsAreaExploration(origin: Node[RCRSNodeStatus], toExplore: Set[Node[RCRSNodeStatus]]): map.AreaExploration = map.areaExploration(origin, toExplore, lineOfSight)
   }
 
 

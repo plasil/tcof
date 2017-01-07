@@ -4,6 +4,6 @@ class Edge[NodeStatusType] private[map2d](val map: Map2D[NodeStatusType], val fr
   def cost = _cost
   def cost_=(value: Double) = {
     _cost = value
-    map.ShortestPath.invalidateCache()
+    map.shortestPath.invalidateCache()
   }
 }

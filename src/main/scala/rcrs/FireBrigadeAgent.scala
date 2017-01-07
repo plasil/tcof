@@ -27,7 +27,7 @@ class FireBrigadeAgent extends ScalaAgent with Map2DTrait[RCRSNodeStatus] with R
 
   override protected def postConnect() {
     super.postConnect()
-    scenario.traitInit()
+    scenario.init()
 
     /*
     maxWater = config.getIntValue(MAX_WATER_KEY)

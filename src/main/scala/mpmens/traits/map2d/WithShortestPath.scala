@@ -7,22 +7,44 @@ import scala.collection.mutable
 trait WithShortestPath[NodeStatusType] {
   this: Map2D[NodeStatusType] =>
 
-  object ShortestPath {
-    private val cache = mutable.Map.empty[Node[NodeStatusType], (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]])]
-    private var epoch = 0
+  object shortestPath {
+    private[WithShortestPath] val outCache = mutable.Map.empty[Node[NodeStatusType], (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]])]
+    private[WithShortestPath] val inCache = mutable.Map.empty[Node[NodeStatusType], (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]])]
+    private[WithShortestPath] var epoch = 0
 
     def invalidateCache(): Unit = {
       synchronized {
-        cache.clear()
+        outCache.clear()
+        inCache.clear()
         epoch = epoch + 1
       }
     }
 
-    def apply(source: Node[NodeStatusType]): ShortestPath = new ShortestPath(source)
+    def from(source: Node[NodeStatusType]): ShortestPathFrom = new ShortestPathFrom(source)
+    def to(destination: Node[NodeStatusType]): ShortestPathTo = new ShortestPathTo(destination)
   }
 
-  class ShortestPath(val origin: Node[NodeStatusType]) {
+  class ShortestPathFrom(source: Node[NodeStatusType]) extends ShortestPath(source) {
+    private[WithShortestPath] def getNeighborsWithCosts(node: Node[NodeStatusType]) = node.outNeighbors.values.map(edge => (edge.to, edge.cost))
+    private[WithShortestPath] def cache = shortestPath.outCache
+
+    def costTo(destination: Node[NodeStatusType]): Option[Double] = cost(destination)
+    def pathTo(destination: Node[NodeStatusType]) = path(destination)
+  }
+
+  class ShortestPathTo(destination: Node[NodeStatusType]) extends ShortestPath(destination) {
+    private[WithShortestPath] def getNeighborsWithCosts(node: Node[NodeStatusType]) = node.inNeighbors.values.map(edge => (edge.from, edge.cost))
+    private[WithShortestPath] def cache = shortestPath.inCache
+
+    def costFrom(source: Node[NodeStatusType]): Option[Double] = cost(source)
+    def pathFrom(source: Node[NodeStatusType]) = path(source)
+  }
+
+  abstract class ShortestPath(val origin: Node[NodeStatusType]) {
     val (nodesByDistance, distances, predecessors) = compute(origin)
+
+    private[WithShortestPath] def getNeighborsWithCosts(node: Node[NodeStatusType]): Iterable[(Node[NodeStatusType], Double)]
+    private[WithShortestPath] def cache: mutable.Map[Node[NodeStatusType], (List[Node[NodeStatusType]], Map[Node[NodeStatusType], Double], Map[Node[NodeStatusType], Node[NodeStatusType]])]
 
     // Adapted from https://github.com/ummels/dijkstra-in-scala/blob/master/src/main/scala/de/ummels/dijkstra/DijkstraPriority.scala
     // Original version - Copyright (c) 2015, Michael Ummels <michael@ummels.de>
@@ -34,9 +56,9 @@ trait WithShortestPath[NodeStatusType] {
         else {
           val (node, cost) = active.head
           val neighbours = (for {
-            edge <- node.neighbors.values
-            if !distances.contains(edge.to) && cost + edge.cost < active.getOrElse(edge.to, Double.MaxValue)
-          } yield edge.to -> (cost + edge.cost)) toMap
+            (neigh, neighCost) <- getNeighborsWithCosts(node)
+            if !distances.contains(neigh) && cost + neighCost < active.getOrElse(neigh, Double.MaxValue)
+          } yield neigh -> (cost + neighCost)) toMap
 
           val preds = neighbours mapValues (_ => node)
           go(active.tail ++ neighbours, node :: nodesByDistance, distances + (node -> cost), predecessors ++ preds)
@@ -46,29 +68,29 @@ trait WithShortestPath[NodeStatusType] {
       var epoch = 0
 
       synchronized {
-        ShortestPath.cache.get(origin) match {
+        cache.get(origin) match {
           case Some(x) => result = x
           case None =>
         }
 
-        epoch = ShortestPath.epoch
+        epoch = shortestPath.epoch
       }
 
       if (result == null) {
         result = go(PriorityMap(origin -> 0), List.empty[Node[NodeStatusType]], Map.empty[Node[NodeStatusType], Double], Map.empty[Node[NodeStatusType], Node[NodeStatusType]])
 
         synchronized {
-          if (ShortestPath.epoch == epoch)
-            ShortestPath.cache += (origin -> result)
+          if (shortestPath.epoch == epoch)
+            cache += (origin -> result)
         }
       }
 
       result
     }
 
-    def distanceTo(target: Node[NodeStatusType]): Option[Double] = distances.get(target)
+    private[WithShortestPath] def cost(target: Node[NodeStatusType]): Option[Double] = distances.get(target)
 
-    def pathTo(target: Node[NodeStatusType]) = {
+    private[WithShortestPath] def path(target: Node[NodeStatusType]) = {
       def go(current: Node[NodeStatusType], pathSoFar: List[Node[NodeStatusType]] = List()): List[Node[NodeStatusType]] = {
         predecessors.get(current) match {
           case None => pathSoFar

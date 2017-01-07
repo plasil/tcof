@@ -1,8 +1,11 @@
 package mpmens.traits.map2d
 
 class Node[NodeStatusType] private[map2d](val map: Map2D[NodeStatusType], val center: Position) {
-  private[map2d] var _neighbors = Map.empty[Node[NodeStatusType], Edge[NodeStatusType]]
-  def neighbors: Map[Node[NodeStatusType], Edge[NodeStatusType]] = _neighbors
+  private[map2d] var _outNeighbors = Map.empty[Node[NodeStatusType], Edge[NodeStatusType]]
+  private[map2d] var _inNeighbors = Map.empty[Node[NodeStatusType], Edge[NodeStatusType]]
+
+  def outNeighbors: Map[Node[NodeStatusType], Edge[NodeStatusType]] = _outNeighbors
+  def inNeighbors: Map[Node[NodeStatusType], Edge[NodeStatusType]] = _inNeighbors
 
   var lastVisitTime = Int.MinValue
 

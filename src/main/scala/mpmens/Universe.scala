@@ -1,7 +1,8 @@
 package mpmens
 
+import mpmens.traits.Trait
 
-abstract class Universe {
+abstract class Universe extends Trait {
   private var _universe = Seq.empty[Component]
   def components_= (univ: Seq[Component]): Unit = _universe = univ
   def components: Seq[Component] = _universe

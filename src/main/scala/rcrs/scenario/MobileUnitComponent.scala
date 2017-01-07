@@ -1,6 +1,6 @@
 package rcrs.scenario
 
-import mpmens.traits.map2d.{Position, PositionAware}
+import mpmens.traits.map2d.Position
 import mpmens.{Component, Universe}
 
 trait MobileUnitComponent {

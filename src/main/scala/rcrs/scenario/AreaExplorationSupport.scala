@@ -60,11 +60,9 @@ trait AreaExplorationSupport {
     def doExploration(): Unit = {
       val assumeLen = 10
 
-      map.RCRSAreaExploration
-
       if (areaExploration == null || areaExplorationCurrentZone != areaExplorationAssignedZone) {
         areaExplorationCurrentZone = areaExplorationAssignedZone
-        areaExploration = map.RCRSAreaExploration(map.currentNode, areaExplorationAssignedZone.toExplore)
+        areaExploration = map.rcrsAreaExploration(map.currentNode, areaExplorationAssignedZone.toExplore)
 
       } else {
         val path = areaExploration.explorationPath

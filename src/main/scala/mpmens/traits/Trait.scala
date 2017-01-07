@@ -1,8 +1,6 @@
 package mpmens.traits
 
 trait Trait {
-  def traitInit(): Unit = {
+  def init(): Unit = {
   }
-
-
 }

@@ -7,10 +7,8 @@ import scala.concurrent.Future
 trait WithAreaExploration[NodeStatusType] {
   this: Map2D[NodeStatusType] =>
 
-  object AreaExploration {
-    def apply(origin: Node[NodeStatusType], toExplore: Set[Node[NodeStatusType]], nodesInView: Node[NodeStatusType] => Iterable[Node[NodeStatusType]]): AreaExploration =
+  def areaExploration(origin: Node[NodeStatusType], toExplore: Set[Node[NodeStatusType]], nodesInView: Node[NodeStatusType] => Iterable[Node[NodeStatusType]]): AreaExploration =
       new AreaExploration(origin, toExplore, nodesInView)
-  }
 
   /**
     * Approximates optimal path starting at origin that ensures that all nodes within rectangle [leftBottom, rightTop] are seen (i.e.
@@ -31,7 +29,7 @@ trait WithAreaExploration[NodeStatusType] {
     private class ComputationTask() {
       val localAssumePathWithOrigin = assumePathWithOrigin
       val exploreOrigin = localAssumePathWithOrigin.last
-      val dij = new ShortestPath(exploreOrigin)
+      val dij = shortestPath.from(exploreOrigin)
 
       val toExplore = dij.nodesByDistance.filter(nodesToExplore.contains(_))
 
@@ -43,7 +41,7 @@ trait WithAreaExploration[NodeStatusType] {
       var isInterrupted = false
 
       val future = Future({
-        val assumePathDistance = localAssumePathWithOrigin.zip(localAssumePathWithOrigin.tail).map { case (start, end) => start.neighbors(end).cost }.sum
+        val assumePathDistance = localAssumePathWithOrigin.zip(localAssumePathWithOrigin.tail).map { case (start, end) => start.outNeighbors(end).cost }.sum
 
         val adjustedToExplore = mutable.Set.empty[Node[NodeStatusType]] ++ toExplore
         for (node <- localAssumePathWithOrigin) {
@@ -91,7 +89,7 @@ trait WithAreaExploration[NodeStatusType] {
           } else {
             // Select a few closes nodes that are to be explored and assemble an array of nodes we should go to
             // in order to get to the selected nodes to be explored
-            val dij = new ShortestPath(currentNodeVar)
+            val dij = shortestPath.from(currentNodeVar)
 
             val nodesByDistanceIter = dij.nodesByDistance.iterator
             var toExploreCount = 0
@@ -127,7 +125,7 @@ trait WithAreaExploration[NodeStatusType] {
             // Now neighborsToExplore contains a neighbors to go to in order to get to selected nodes to be explored
             if (neighborsToExploreLen == 1) {
               val node = neighborsToExplore(0)
-              val distanceToNode = currentNodeVar.neighbors(node).cost
+              val distanceToNode = currentNodeVar.outNeighbors(node).cost
 
               if (distanceToNode + distanceSoFarVar < explorationPathLength) {
                 pathSoFarReversedVar = currentNodeVar :: pathSoFarReversedVar
@@ -149,7 +147,7 @@ trait WithAreaExploration[NodeStatusType] {
               var signatureDigit = neighborsToExploreLen
 
               for (node <- neighborsToExplore if node != null) {
-                val distanceToNode = currentNodeVar.neighbors(node).cost
+                val distanceToNode = currentNodeVar.outNeighbors(node).cost
 
                 if (distanceToNode + distanceSoFarVar < explorationPathLength) {
                   doComputation(currentNodeVar :: pathSoFarReversedVar, distanceSoFarVar + distanceToNode, signatureVar + signatureDigit, node, currentNodeVar, toExploreVar, backtrackingLimit / neighborsToExploreLen)
