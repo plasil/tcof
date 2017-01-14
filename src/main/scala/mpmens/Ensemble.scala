@@ -22,7 +22,5 @@ trait Ensemble extends WithConfig with WithName with WithUtility with WithEnsemb
 
 
   implicit def iterableToMembersStatic[ComponentType <: Component](components: Iterable[ComponentType]): RoleMembersStatic[ComponentType] = new RoleMembersStatic(components)
-  implicit def roleToMembersCond[ComponentType <: Component](role: Role[ComponentType]): RoleMembersCond[ComponentType] = new RoleMembersCond(role)
-  implicit def roleToMembersEquiv[ComponentType <: Component](role: Role[ComponentType]): RoleMembersEquiv[ComponentType] = new RoleMembersEquiv(role)
   implicit def ensembleGroupToMembers[EnsembleType <: Ensemble](group: EnsembleGroup[EnsembleType]): EnsembleGroupMembers[EnsembleType] = group.allMembers
 }

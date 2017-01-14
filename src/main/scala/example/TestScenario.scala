@@ -3,6 +3,7 @@ package example
 import mpmens._
 import mpmens.traits.map2d.{Map2DTrait, Node}
 import mpmens.traits.statespace.{StateSpaceTrait, interpolate}
+import mpmens.traits.statistics.StatisticsTrait
 
 object MapNodeKind extends Enumeration {
   type MapNodeKind = Value
@@ -13,9 +14,13 @@ import example.MapNodeKind.{Building, MapNodeKind}
 
 class MapNodeStatus(var kind: MapNodeKind, var isBurning: Boolean, var burnoutLevel: Double)
 
-class TestScenario extends Universe with Map2DTrait[MapNodeStatus] with StateSpaceTrait {
+class TestScenario extends Universe with Map2DTrait[MapNodeStatus] with StateSpaceTrait with StatisticsTrait {
 
   type MapNode = Node[MapNodeStatus]
+
+  var noOfStatusMsgReceived = 0
+  var noOfStatusMsgToBeReceived = 1
+  var time = 0
 
   def burnModel(node: MapNode) = interpolate.linear(
     0.0 -> 0.0,
@@ -35,32 +40,35 @@ class TestScenario extends Universe with Map2DTrait[MapNodeStatus] with StateSpa
     name(s"FireBrigade $id")
   }
 
+  val msgDelivery = timeseries.binomial(noOfStatusMsgReceived, noOfStatusMsgToBeReceived - noOfStatusMsgReceived)
 
   class FireFightingTeam(val building: MapNode) extends Ensemble {
     name(s"FireFightingTeam for building $building")
-
-    val allMembers = role("mobileUnits", components.select[MobileUnit])
-    val fireBrigades = role("fireBrigades", allMembers.selectEquiv[FireBrigade])
-    val ambulances = role("ambulances", allMembers.selectEquiv[AmbulanceTeam])
+    val fireBrigades = role("fireBrigades", components.select[FireBrigade])
+    val ambulances = role("ambulances", components.select[AmbulanceTeam])
+    val allMembers = fireBrigades ++ ambulances
 
     val routesToBuilding = map.shortestPath.to(building)
-    val buildingBurnModel = statespace(burnModel(building), 0, building.status.burnoutLevel)
+    val firePredictor = statespace(burnModel(building), 0, building.status.burnoutLevel)
 
     membership(
+      (msgDelivery(time - 3600, time).probability > 0.9 withConfidence 0.95) &&
+
       allMembers.all(unit => routesToBuilding.costFrom(unit.mapPosition) match {
         case None => false
-        case Some(timeToBuilding) => buildingBurnModel.valueAt(timeToBuilding) < 0.9
+        case Some(travelTime) => firePredictor.valueAt(travelTime) < 0.9
       }) &&
+
       fireBrigades.cardinality >= 1 && fireBrigades.cardinality <= 3 && ambulances.cardinality === 1
     )
 
-    def routeTimeToUtility(routeTime: Option[Double]) = routeTime match {
+    def travelTimeToUtility(routeTime: Option[Double]) = routeTime match {
       case None => 0
       case Some(time) => 100 - (time / 10000).round.toInt
     }
 
     utility(
-      allMembers.sum(unit => routeTimeToUtility(routesToBuilding.costFrom(unit.mapPosition)))
+      allMembers.sum(unit => travelTimeToUtility(routesToBuilding.costFrom(unit.mapPosition)))
     )
   }
 

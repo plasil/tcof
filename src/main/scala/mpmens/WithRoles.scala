@@ -12,7 +12,7 @@ trait WithRoles extends Initializable {
 
   def role[ComponentType <: Component](items: RoleMembers[ComponentType]): Role[ComponentType] = role(randomName, items)
   def role[ComponentType <: Component](name: String, items: RoleMembers[ComponentType]): Role[ComponentType] = {
-    val role = new Role[ComponentType](name, items)
+    val role = new Role[ComponentType](name, this, items)
     _roles += name -> role
     role
   }

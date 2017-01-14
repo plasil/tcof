@@ -4,11 +4,16 @@ import mpmens.InitStages.InitStages
 import mpmens.Utils._
 
 /** Represents a role in an ensemble. Implements methods to build membership over components contained in a role. */
-class Role[+ComponentType <: Component](val name: String, private[mpmens] val allMembers: RoleMembers[ComponentType]) extends WithMembers[ComponentType] with Initializable {
+class Role[+ComponentType <: Component](val name: String, private[mpmens] val parent: WithRoles, private[mpmens] val allMembers: RoleMembers[ComponentType]) extends WithMembers[ComponentType] with Initializable {
 
   def cloneEquiv = new RoleMembersEquiv(this)
 
   def cloneCond = new RoleMembersCond(this)
+
+  def ++[OtherType >: ComponentType <: Component](other: Role[OtherType]): Role[OtherType] = {
+    require(parent == other.parent)
+    parent.role(cloneEquiv ++ other.cloneEquiv)
+  }
 
   override def toString: String =
     s"""Role "$name":\n${indent(selectedMembers.map(_ + "\n").mkString(""), 1)}"""
