@@ -2,11 +2,11 @@ package rcrs.scenario
 
 import rcrs.comm.{Constants, Message, RegRequest, RegResponse}
 import rcrs.traits.RCRSConnectorTrait
-import rcrs.traits.time.CurrentTimeTrait
 import rescuecore2.log.Logger
+import tcof.Universe
 
 trait RegistrationSupport {
-  this: RCRSConnectorTrait with CurrentTimeTrait =>
+  this: Universe with RCRSConnectorTrait =>
 
   /**
     * Obtains a shortId from the central server.

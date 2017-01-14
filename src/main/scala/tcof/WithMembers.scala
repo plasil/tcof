@@ -13,8 +13,7 @@ trait WithMembers[+MemberType] extends WithConfig with Initializable {
     super._init(stage, config)
 
     stage match {
-      case InitStages.VarsCreation =>
-        allMembersVar = _solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
+      case InitStages.VarsCreation => allMembersVar = _solverModel.setVar(Array.empty[Int], 0 until allMembers.size toArray)
       case _ =>
     }
   }

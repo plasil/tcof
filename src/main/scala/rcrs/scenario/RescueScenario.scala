@@ -4,10 +4,9 @@ import tcof._
 import tcof.traits.map2d.{Map2DTrait, Position}
 import rcrs.traits.RCRSConnectorTrait
 import rcrs.traits.map2d.RCRSNodeStatus
-import rcrs.traits.time.CurrentTimeTrait
 
 
-class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus] with CurrentTimeTrait
+class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus]
   with MobileUnitComponent with RegistrationSupport with AreaExplorationSupport with ObservationSupport {
 
   class PoliceForce(no: Int, _position: Position) extends MobileUnit(_position) {

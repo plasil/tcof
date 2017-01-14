@@ -14,20 +14,15 @@ import scala.collection.mutable.ListBuffer
 
 
 
-abstract class ScalaAgent extends RCRSTrait {
+abstract class ScalaAgent {
   sagent =>
 
   type AgentEntityType <: StandardEntity
 
-  /* This is for making it possible to mix Traits with agents */
-  val agent = this
-
   protected def postConnect(): Unit = {
-    init()
   }
 
   protected def think(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
-    rcrsTraitStep(time, changes, heard)
   }
 
 

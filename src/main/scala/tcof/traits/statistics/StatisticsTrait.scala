@@ -1,12 +1,13 @@
 package tcof.traits.statistics
 
-import tcof.LogicalBoolean
+import tcof.{LogicalBoolean, Universe}
 import tcof.traits.Trait
 import org.apache.commons.math3.distribution.BinomialDistribution
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 trait StatisticsTrait extends Trait {
+  this: Universe =>
 
   val defaultBucketSize = 1
   val defaultTimeOffset = 0
@@ -107,11 +108,11 @@ trait StatisticsTrait extends Trait {
     def <(prob: Double): BinomialTimeSeriesProbabilityTest = new BinomialTimeSeriesProbabilityTest(ts, prob, LT)
   }
 
-  class BinomialTimeSeries(private val trueIn: () => Int, private val falseIn: () => Int, timeOffset: Int, bucketSize: Int, val data: TimeSeriesOfBooleans) {
+  class BinomialTimeSeries(private val trueIn: () => Int, private val falseIn: () => Int, timeOffset: Int, bucketSize: Int, val data: TimeSeriesOfBooleans) extends TimeSeries {
     def this(trueIn: () => Int, falseIn: () => Int, timeOffset: Int, bucketSize: Int) =
       this(trueIn, falseIn, timeOffset, bucketSize, new TimeSeriesOfBooleans(timeOffset, bucketSize))
 
-    def timeStep(time: Int): Unit = {
+    override def traitStep(): Unit = {
       data.add(time, trueIn(), falseIn())
     }
 
@@ -122,9 +123,22 @@ trait StatisticsTrait extends Trait {
     }
   }
 
+  trait TimeSeries {
+    def traitStep(): Unit
+  }
+
   object timeseries {
-    def binomial(trueIn: => Int, falseIn: => Int, timeOffset: Int = defaultTimeOffset, bucketSize: Int = defaultBucketSize) =
-      new BinomialTimeSeries(trueIn _, falseIn _, timeOffset, bucketSize)
+    val registeredTS = ListBuffer.empty[TimeSeries]
+
+    def binomial(trueIn: => Int, falseIn: => Int, timeOffset: Int = defaultTimeOffset, bucketSize: Int = defaultBucketSize) = {
+      val ts = new BinomialTimeSeries(trueIn _, falseIn _, timeOffset, bucketSize)
+      registeredTS += ts
+      ts
+    }
+  }
+
+  override protected def traitStep(): Unit = {
+    timeseries.registeredTS.foreach(_.traitStep())
   }
 
 }

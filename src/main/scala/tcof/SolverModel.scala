@@ -111,7 +111,7 @@ class SolverModel extends Model {
     }
   }
 
-  def sumBasedOnMembership(membersVar: SetVar, values: Iterable[Integer]): IntegerIntVar = {
+  def sumBasedOnMembership(membersVar: SetVar, values: Iterable[Integer]): Integer = {
     IntegerIntVar(
       if (values.forall(_.isInstanceOf[IntegerInt]))
         sumIntsBasedOnMembership(membersVar, values)

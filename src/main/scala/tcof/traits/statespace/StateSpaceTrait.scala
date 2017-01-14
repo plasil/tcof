@@ -1,20 +1,25 @@
 package tcof.traits.statespace
 
 import org.apache.commons.math3.analysis.interpolation.{LinearInterpolator, SplineInterpolator}
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations
 import org.apache.commons.math3.ode.events.EventHandler
 import org.apache.commons.math3.ode.nonstiff.DormandPrince853Integrator
 
 object interpolate {
-  def linear(breakpoints: (Double, Double)*): Double => Double = {
-    val fun = new LinearInterpolator().interpolate(breakpoints.map(_._1).toArray, breakpoints.map(_._2).toArray)
-    (x: Double) => fun.value(x)
+  private def interpolant(breakpoints: Seq[(Double, Double)], fun: PolynomialSplineFunction): Double => Double = {
+    (x: Double) => {
+      if (x > breakpoints.last._1) breakpoints.last._2
+      else if (x < breakpoints.head._1) breakpoints.head._1
+      else fun.value(x)
+    }
   }
 
-  def spline(breakpoints: (Double, Double)*): Double => Double = {
-    val fun = new SplineInterpolator().interpolate(breakpoints.map(_._1).toArray, breakpoints.map(_._2).toArray)
-    (x: Double) => fun.value(x)
-  }
+  def linear(breakpoints: (Double, Double)*): Double => Double =
+    interpolant(breakpoints, new LinearInterpolator().interpolate(breakpoints.map(_._1).toArray, breakpoints.map(_._2).toArray))
+
+  def spline(breakpoints: (Double, Double)*): Double => Double =
+    interpolant(breakpoints, new SplineInterpolator().interpolate(breakpoints.map(_._1).toArray, breakpoints.map(_._2).toArray))
 }
 
 abstract class StateSpaceModel private[statespace](val model: FirstOrderDifferentialEquations, val t0: Double, val y0: Array[Double]) {
@@ -35,11 +40,15 @@ abstract class StateSpaceModel private[statespace](val model: FirstOrderDifferen
   }
 
   protected def value(time: Double): Array[Double] = {
-    val dp853 = new DormandPrince853Integrator(1.0e-8, 100.0, 1.0e-10, 1.0e-10)
+    if (time == t0)
+      y0
+    else {
+      val dp853 = new DormandPrince853Integrator(1.0e-8, 100.0, 1.0e-10, 1.0e-10)
 
-    var y = new Array[Double](y0.size)
-    dp853.integrate(model, t0, y0, time, y)
-    y
+      var y = new Array[Double](y0.size)
+      dp853.integrate(model, t0, y0, time, y)
+      y
+    }
   }
 }
 

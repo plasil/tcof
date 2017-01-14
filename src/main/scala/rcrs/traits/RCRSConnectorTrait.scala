@@ -8,9 +8,10 @@ import rescuecore2.messages.Command
 import rescuecore2.standard.entities.StandardEntity
 import rescuecore2.standard.messages.AKSpeak
 import rescuecore2.worldmodel.ChangeSet
+import tcof.Universe
 
 trait RCRSConnectorTrait extends RCRSTrait with RCRSMapAdapterTrait {
-  this: Map2DTrait[RCRSNodeStatus] =>
+  this: Universe with Map2DTrait[RCRSNodeStatus] =>
 
   var agent: ScalaAgent = _
 
@@ -23,11 +24,11 @@ trait RCRSConnectorTrait extends RCRSTrait with RCRSMapAdapterTrait {
     def messages = heard.collect{ case speak : AKSpeak => Message.decode(speak.getContent) }
   }
 
-  override def rcrsTraitStep(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
+  def rcrsStep(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {
     sensing.changes = changes
     sensing.heard = heard
 
-    super.rcrsTraitStep(time, changes, heard)
+    step(time)
   }
 
 }

@@ -4,14 +4,14 @@ import tcof.traits.map2d.{Map2DTrait, Node}
 import rcrs.comm.{Constants, ExplorationStatus, Message}
 import rcrs.traits.RCRSConnectorTrait
 import rcrs.traits.map2d.{BuildingStatus, RCRSNodeStatus, RoadStatus}
-import rcrs.traits.time.CurrentTimeTrait
 import rescuecore2.standard.entities.{Area, Building, Road}
+import tcof.Universe
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 trait ObservationSupport {
-  this: RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus] with CurrentTimeTrait =>
+  this: Universe with RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus] =>
 
   /**
     * Observes and records changes in its close vicinity. It checks the "changes" variable, which contains what the agent has seen. Based on this, it upddates the map and sends the changes to the central station.

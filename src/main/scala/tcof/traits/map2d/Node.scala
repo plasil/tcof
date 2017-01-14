@@ -11,5 +11,5 @@ class Node[NodeStatusType] private[map2d](val map: Map2D[NodeStatusType], val ce
 
   var status: NodeStatusType = _
 
-  override def toString() = s"Node(${lastVisitTime})"
+  override def toString() = s"Node(${center.x}, ${center.y})"
 }

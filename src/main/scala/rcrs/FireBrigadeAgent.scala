@@ -9,7 +9,7 @@ import rescuecore2.standard.entities.{StandardEntityURN, FireBrigade => FireBrig
 import rescuecore2.worldmodel.ChangeSet
 
 
-class FireBrigadeAgent extends ScalaAgent with Map2DTrait[RCRSNodeStatus] with RCRSMapAdapterTrait {
+class FireBrigadeAgent extends ScalaAgent {
   override type AgentEntityType = FireBrigadeEntity
 
   val scenario = new RescueScenario
@@ -50,7 +50,7 @@ class FireBrigadeAgent extends ScalaAgent with Map2DTrait[RCRSNodeStatus] with R
     if (time >= ignoreAgentCommandsUntil) {
       // Logger.info("Heard: " + heard)
 
-      scenario.rcrsTraitStep(time: Int, changes: ChangeSet, heard: List[Command])
+      scenario.rcrsStep(time: Int, changes: ChangeSet, heard: List[Command])
       scenario.components = List(component)
 
       component.init()
