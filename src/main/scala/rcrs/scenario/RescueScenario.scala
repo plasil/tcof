@@ -1,7 +1,7 @@
 package rcrs.scenario
 
-import mpmens._
-import mpmens.traits.map2d.{Map2DTrait, Position}
+import tcof._
+import tcof.traits.map2d.{Map2DTrait, Position}
 import rcrs.traits.RCRSConnectorTrait
 import rcrs.traits.map2d.RCRSNodeStatus
 import rcrs.traits.time.CurrentTimeTrait

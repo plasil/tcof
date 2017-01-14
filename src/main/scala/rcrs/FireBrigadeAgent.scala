@@ -1,6 +1,6 @@
 package rcrs
 
-import mpmens.traits.map2d.Map2DTrait
+import tcof.traits.map2d.Map2DTrait
 import rcrs.comm._
 import rcrs.scenario.RescueScenario
 import rcrs.traits.map2d.{RCRSMapAdapterTrait, RCRSNodeStatus}

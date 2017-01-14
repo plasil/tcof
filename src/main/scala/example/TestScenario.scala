@@ -1,9 +1,9 @@
 package example
 
-import mpmens._
-import mpmens.traits.map2d.{Map2DTrait, Node}
-import mpmens.traits.statespace.{StateSpaceTrait, interpolate}
-import mpmens.traits.statistics.StatisticsTrait
+import tcof._
+import tcof.traits.map2d.{Map2DTrait, Node}
+import tcof.traits.statespace.{StateSpaceTrait, interpolate}
+import tcof.traits.statistics.StatisticsTrait
 
 object MapNodeKind extends Enumeration {
   type MapNodeKind = Value

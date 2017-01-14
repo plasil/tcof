@@ -1,6 +1,6 @@
 package rcrs;
 
-import mpmens.traits.map2d.Position;
+import tcof.traits.map2d.Position;
 import rescuecore2.config.Config;
 import rescuecore2.misc.Pair;
 import rescuecore2.misc.geometry.GeometryTools2D;

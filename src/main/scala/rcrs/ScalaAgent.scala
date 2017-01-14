@@ -2,7 +2,7 @@ package rcrs
 
 import java.util.{Collection, EnumSet}
 
-import mpmens.traits.map2d.Position
+import tcof.traits.map2d.Position
 import rcrs.traits.RCRSTrait
 import rescuecore2.messages.Command
 import rescuecore2.standard.components.StandardAgent

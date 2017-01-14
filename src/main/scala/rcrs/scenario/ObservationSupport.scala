@@ -1,6 +1,6 @@
 package rcrs.scenario
 
-import mpmens.traits.map2d.{Map2DTrait, Node}
+import tcof.traits.map2d.{Map2DTrait, Node}
 import rcrs.comm.{Constants, ExplorationStatus, Message}
 import rcrs.traits.RCRSConnectorTrait
 import rcrs.traits.map2d.{BuildingStatus, RCRSNodeStatus, RoadStatus}

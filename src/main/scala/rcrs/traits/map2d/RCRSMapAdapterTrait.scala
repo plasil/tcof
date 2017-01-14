@@ -1,6 +1,6 @@
 package rcrs.traits.map2d
 
-import mpmens.traits.map2d.{Map2D, Map2DTrait, Node, Position}
+import tcof.traits.map2d.{Map2D, Map2DTrait, Node, Position}
 import rcrs.traits.RCRSTrait
 import rescuecore2.standard.entities.Area
 import rescuecore2.worldmodel.EntityID

@@ -1,6 +1,6 @@
 package rcrs.traits
 
-import mpmens.traits.Trait
+import tcof.traits.Trait
 import rcrs.ScalaAgent
 import rescuecore2.messages.Command
 import rescuecore2.worldmodel.ChangeSet

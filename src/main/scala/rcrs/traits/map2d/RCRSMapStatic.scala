@@ -2,7 +2,7 @@ package rcrs.traits.map2d
 
 import java.io._
 
-import mpmens.traits.map2d.Position
+import tcof.traits.map2d.Position
 import rcrs.LineOfSight
 import rescuecore2.config.Config
 import rescuecore2.standard.entities.{Area, StandardWorldModel}

@@ -1,4 +1,4 @@
-name := "mpm-ensembles"
+name := "tcof"
 
 version := "1.0"
 

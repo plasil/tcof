@@ -1,7 +1,7 @@
 package rcrs.scenario
 
-import mpmens.traits.map2d.Position
-import mpmens.{Component, Universe}
+import tcof.traits.map2d.Position
+import tcof.{Component, Universe}
 
 trait MobileUnitComponent {
   this: Universe with ObservationSupport with RegistrationSupport with AreaExplorationSupport =>
