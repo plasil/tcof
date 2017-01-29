@@ -34,10 +34,10 @@ trait WithStateSets extends Initializable {
     stateSet
   }
 
-  def StateAnd[StateType <: State](stateFirst: StateType, stateRest: StateType*): StateSetOr[StateType] = StateAnd(randomName, stateRest.+:(stateFirst))
-  def StateAnd[StateType <: State](name: String, stateFirst: StateType, stateRest: StateType*): StateSetOr[StateType] = StateAnd(name, stateRest.+:(stateFirst))
-  def StateAnd[StateType <: State](name: String, stats: Iterable[StateType]): StateSetOr[StateType] = {
-    val stateSet = new StateSetOr(_genStateId, name, new StateSetMembers(stats))
+  def StateAnd[StateType <: State](stateFirst: StateType, stateRest: StateType*): StateSetAnd[StateType] = StateAnd(randomName, stateRest.+:(stateFirst))
+  def StateAnd[StateType <: State](name: String, stateFirst: StateType, stateRest: StateType*): StateSetAnd[StateType] = StateAnd(name, stateRest.+:(stateFirst))
+  def StateAnd[StateType <: State](name: String, stats: Iterable[StateType]): StateSetAnd[StateType] = {
+    val stateSet = new StateSetAnd(_genStateId, name, new StateSetMembers(stats))
     _allStates += stateSet
     stateSet
   }
