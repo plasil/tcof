@@ -9,13 +9,13 @@ import rcrs.traits.map2d.RCRSNodeStatus
 class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus]
   with MobileUnitComponent with RegistrationSupport with AreaExplorationSupport with ObservationSupport {
 
-  class PoliceForce(no: Int, _position: Position) extends MobileUnit(_position) {
-    name(s"PoliceForce $no")
-  }
+//  class PoliceForce(no: Int, _position: Position) extends MobileUnit(_position) {
+//    name(s"PoliceForce $no")
+//  }
 
-  class AmbulanceTeam(no: Int, _position: Position) extends MobileUnit(_position) {
-    name(s"AmbulanceTeam $no")
-  }
+//  class AmbulanceTeam(no: Int, _position: Position) extends MobileUnit(_position) {
+//    name(s"AmbulanceTeam $no")
+//  }
 
   class FireBrigade(no: Int, _position: Position) extends MobileUnit(_position) {
     name(s"FireBrigade $no")
@@ -32,13 +32,13 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
     implicit def roleToRoleMembersEquiv(role: Role[RescueScenario.this.MobileUnit]) = role.cloneEquiv
 
     val fireBrigades = role("fireBrigades", mobileUnits.selectEquiv[FireBrigade])
-    val ambulances = role("ambulanceTeams", mobileUnits.selectEquiv[AmbulanceTeam])
-    val police = role("policeForces", mobileUnits.selectEquiv[PoliceForce])
+    //val ambulances = role("ambulanceTeams", mobileUnits.selectEquiv[AmbulanceTeam])
+    //val police = role("policeForces", mobileUnits.selectEquiv[PoliceForce])
 
     membership(
-      fireBrigades.cardinality >= 1 &&
-      ambulances.cardinality >= 1 &&
-        police.cardinality === 1
+      fireBrigades.cardinality >= 1
+      // && ambulances.cardinality >= 1
+      // && police.cardinality === 1
     )
 
     def proximityToZoneCenter(unit: MobileUnit) = 100 - (unit.position.distanceTo(zone.center) / 10000).round.toInt
@@ -61,9 +61,9 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
     val explorationTeams = ensembles("explorationTeam", mapZones.map(new ExplorationTeam(_)))
 
     membership(
-      explorationTeams.map(_.fireBrigades).allDisjoint &&
-      explorationTeams.map(_.ambulances).allDisjoint &&
-      explorationTeams.map(_.police).allDisjoint
+      explorationTeams.map(_.fireBrigades).allDisjoint
+      // && explorationTeams.map(_.ambulances).allDisjoint
+      // && explorationTeams.map(_.police).allDisjoint
     )
   }
 
