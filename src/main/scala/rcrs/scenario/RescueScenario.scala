@@ -21,7 +21,6 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
     name(s"FireBrigade $no")
   }
 
-/*
   class ExplorationTeam(val zone: MapZone) extends Ensemble {
     name(s"ExplorationTeam for $zone")
 
@@ -77,7 +76,6 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
   }
 
   val rootEnsemble = root(new System)
-*/
 
 }
 
