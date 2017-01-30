@@ -22,7 +22,7 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
   }
 
 /*
-  class ExplorationTeams(val zone: MapZone) extends Ensemble {
+  class ExplorationTeam(val zone: MapZone) extends Ensemble {
     name(s"ExplorationTeam for $zone")
 
     val mobileUnits = role("mobileUnits", components.select[MobileUnit])
@@ -58,7 +58,7 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
       yIdx <- 0 until 2
     } yield new MapZone(map, xIdx, yIdx, 0 /* time - 20 */)
 
-    val explorationTeams = ensembles("explorationTeams", mapZones.map(new ExplorationTeams(_)))
+    val explorationTeams = ensembles("explorationTeam", mapZones.map(new ExplorationTeam(_)))
 
     membership(
       explorationTeams.map(_.fireBrigades).allDisjoint &&
