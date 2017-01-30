@@ -48,7 +48,9 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
     )
 
     actions {
-      mobileUnits.foreachBySelection(_.explorationZone = zone, _.explorationZone = null)
+      //mobileUnits.foreachBySelection(_.explorationZone = zone, _.explorationZone = null)
+      // assigns zones nulled in System.actions
+      mobileUnits.foreachBySelection(_.areaExplorationAssignedZone = zone, _ => ())
     }
   }
 
@@ -65,6 +67,13 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
       // && explorationTeams.map(_.ambulances).allDisjoint
       // && explorationTeams.map(_.police).allDisjoint
     )
+
+    actions {
+      // nulls all assigned zones
+      // TODO - the information about zones should be contained in ExplorationTeam ensamble
+      // this leaks information about zones into parent ensamble
+      components.select[MobileUnit].map(_.areaExplorationAssignedZone = null)
+    }
   }
 
   val rootEnsemble = root(new System)
