@@ -58,7 +58,7 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
     val mapZones = for {
       xIdx <- 0 until 1
       yIdx <- 0 until 2
-    } yield new MapZone(map, xIdx, yIdx, 0 /* time - 20 */)
+    } yield new MapZone(xIdx, yIdx, 0 /* time - 20 */)
 
     val explorationTeams = ensembles("explorationTeam", mapZones.map(new ExplorationTeam(_)))
 
