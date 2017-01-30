@@ -40,6 +40,7 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
       // && police.cardinality === 1
     )
 
+    // TODO - use shortest path to zone.center instead of euclidian distance
     def proximityToZoneCenter(unit: MobileUnit) = 100 - (unit.position.distanceTo(zone.center) / 10000).round.toInt
 
     utility(
