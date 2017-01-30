@@ -46,6 +46,11 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
       mobileUnits.sum(proximityToZoneCenter(_))
     )
 
+    // TODO - added only to demonstrate functionality in preActions (FP)
+    preActions {
+      println(s"preActions called on ensemble ${this.toString}")
+    }
+
     actions {
       //mobileUnits.foreachBySelection(_.explorationZone = zone, _.explorationZone = null)
       // assigns zones nulled in System.actions
