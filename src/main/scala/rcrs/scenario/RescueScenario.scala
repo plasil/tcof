@@ -27,6 +27,10 @@ class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RC
 
     val mobileUnits = role("mobileUnits", components.select[MobileUnit])
 
+    // implicit conversion, shortens e.g. mobileUnits.cloneEquiv.selectEquiv[FireBrigade]
+    // to mobileUnits.selectEquiv[FireBrigade]
+    implicit def roleToRoleMembersEquiv(role: Role[RescueScenario.this.MobileUnit]) = role.cloneEquiv
+
     val fireBrigades = role("fireBrigades", mobileUnits.selectEquiv[FireBrigade])
     val ambulances = role("ambulanceTeams", mobileUnits.selectEquiv[AmbulanceTeam])
     val police = role("policeForces", mobileUnits.selectEquiv[PoliceForce])
