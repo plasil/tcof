@@ -94,7 +94,10 @@ object RCRSMapStatic {
 
         output.writeObject(lineOfSight.map{ case (key, value) => (key.getValue, value.map(_.getValue)) })  // transforms Map[EntityID, Set[EntityID]] to Map[Int, Set[Int]]
 
-        output.writeObject(closeAreaIDs.map{ case (refAreaId, CloseAreaIDs(byIdx, byAreaId)) => refAreaId.getValue -> (byIdx.mapValues(_.getValue), byAreaId.map{ case (id, idx) => id.getValue -> idx })})
+        output.writeObject(closeAreaIDs.map{
+          case (refAreaId, CloseAreaIDs(byIdx, byAreaId)) =>
+            refAreaId.getValue -> (byIdx.mapValues(_.getValue).map(identity), byAreaId.map{ case (id, idx) => id.getValue -> idx })
+        })
 
         println(s"Saved precomputed data to \'${precomputeFileName}\'")
       } finally {
