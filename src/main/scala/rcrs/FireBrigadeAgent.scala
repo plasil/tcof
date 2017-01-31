@@ -13,6 +13,8 @@ class FireBrigadeAgent extends ScalaAgent {
   override type AgentEntityType = FireBrigadeEntity
 
   val scenario = new RescueScenario
+  // TODO - number, position - assign number from central agent?
+  // assign current position?
   val component = new scenario.FireBrigade(0, null)
 
   /*
