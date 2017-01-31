@@ -21,7 +21,7 @@ class CentralAgent extends ScalaAgent {
   val agentsByShortId = mutable.Map.empty[Int, AgentInfo]
   var shortIdCounter = 0
 
-  val scenario = new RescueScenario
+  val scenario = new RescueScenario(this)
 
 
   override protected def postConnect() {

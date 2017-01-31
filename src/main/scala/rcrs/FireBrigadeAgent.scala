@@ -12,7 +12,7 @@ import rescuecore2.worldmodel.ChangeSet
 class FireBrigadeAgent extends ScalaAgent {
   override type AgentEntityType = FireBrigadeEntity
 
-  val scenario = new RescueScenario
+  val scenario = new RescueScenario(this)
   // TODO - number, position - assign number from central agent?
   // assign current position?
   val component = new scenario.FireBrigade(0, null)

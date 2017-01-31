@@ -1,13 +1,16 @@
 package rcrs.scenario
 
+import rcrs.ScalaAgent
 import tcof._
 import tcof.traits.map2d.{Map2DTrait, Position}
 import rcrs.traits.RCRSConnectorTrait
 import rcrs.traits.map2d.RCRSNodeStatus
 
 
-class RescueScenario extends Universe with RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus]
+class RescueScenario(scalaAgent: ScalaAgent) extends Universe with RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus]
   with MobileUnitComponent with RegistrationSupport with AreaExplorationSupport with ObservationSupport {
+
+  this.agent = scalaAgent
 
 //  class PoliceForce(no: Int, _position: Position) extends MobileUnit(_position) {
 //    name(s"PoliceForce $no")
