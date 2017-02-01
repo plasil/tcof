@@ -20,6 +20,8 @@ trait MobileUnitComponent {
       states.sum {
         case Observation => 1
         case AreaExploration => 1
+        // TODO - during run I get also other values - tcof.State, tcof.StateSetOr
+        case _: tcof.State => 0
       }
     )
 
