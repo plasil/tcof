@@ -21,7 +21,10 @@ trait RCRSConnectorTrait extends RCRSTrait with RCRSMapAdapterTrait {
     var changes: ChangeSet = _
     var heard: List[Command] = _
 
-    def messages = heard.collect{ case speak : AKSpeak => Message.decode(speak.getContent) }
+    def messages = heard.collect{
+      case speak : AKSpeak =>
+        (Message.decode(speak.getContent), speak)
+    }
   }
 
   def rcrsStep(time: Int, changes: ChangeSet, heard: List[Command]): Unit = {

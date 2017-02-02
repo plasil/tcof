@@ -8,7 +8,7 @@ import rcrs.traits.map2d.RCRSNodeStatus
 
 
 class RescueScenario(scalaAgent: ScalaAgent) extends Universe with RCRSConnectorTrait with Map2DTrait[RCRSNodeStatus]
-  with MobileUnitComponent with RegistrationSupport with AreaExplorationSupport with ObservationSupport {
+  with MobileUnitComponent with CentralUnitComponent with RegistrationSupport with AreaExplorationSupport with ObservationSupport {
 
   this.agent = scalaAgent
 
@@ -22,6 +22,10 @@ class RescueScenario(scalaAgent: ScalaAgent) extends Universe with RCRSConnector
 
   class FireBrigade(no: Int, _position: Position) extends MobileUnit(_position) {
     name(s"FireBrigade $no")
+  }
+
+  class FireStation(no: Int, _position: Position) extends CentralUnit(_position) {
+    name(s"FireStation $no")
   }
 
   class ExplorationTeam(val zone: MapZone) extends Ensemble {

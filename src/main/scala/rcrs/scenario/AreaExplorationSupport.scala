@@ -1,5 +1,7 @@
 package rcrs.scenario
 
+import rcrs.comm._
+import rescuecore2.log.Logger
 import tcof.traits.map2d.{Map2D, Map2DTrait, Node, Position}
 import rcrs.traits.RCRSConnectorTrait
 import rcrs.traits.map2d.RCRSNodeStatus
@@ -86,4 +88,28 @@ trait AreaExplorationSupport {
 
   }
 
+
+  /**
+    * Stores information about world updated from ExplorationStatus messages.
+    */
+  trait AreaExplorationCentral {
+
+    this: CentralUnitComponent#CentralUnit =>
+
+    preActions {
+      sensing.messages.foreach {
+        case (ExplorationStatus(referenceAreaId, statusMap), _) =>
+          val nodes = statusMap.map{
+            case (idx, status) =>
+              map.toNode(map.closeAreaIDs(referenceAreaId).byIdx(idx)) -> status
+          }
+
+          map.nodeStatus ++= nodes
+
+          Logger.info(s"Exploration status updated for: ${nodes.keys.map(map.toArea)}")
+
+        case _ =>
+      }
+    }
+  }
 }
